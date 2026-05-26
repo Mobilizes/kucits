@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "547929824611",
+    "project_id": "kucits-200f2",
+    "storage_bucket": "kucits-200f2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:547929824611:android:706034aa4bdae106468756",
+        "android_client_info": {
+          "package_name": "com.example.kucits"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIfscuf5-C-tHDOUUXjsEVpue87Uks2wU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
