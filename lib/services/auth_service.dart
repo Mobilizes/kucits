@@ -6,13 +6,41 @@ class AuthService {
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
   Future<User?> signInWithEmailAndPassword(
-      String email, String password) async {
+    String email,
+    String password,
+  ) async {
     try {
       UserCredential result = await _auth.signInWithEmailAndPassword(
-          email: email, password: password);
+        email: email,
+        password: password,
+      );
       return result.user;
     } catch (e) {
       return null;
+    }
+  }
+
+  Future<User?> registerWithEmailAndPassword(
+    String email,
+    String password,
+  ) async {
+    try {
+      UserCredential result = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return result.user;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<bool> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 

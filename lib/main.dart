@@ -1,13 +1,14 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:kucits/firebase_options.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'screens/timeline_screen.dart';
+import 'screens/login_screen.dart';
+import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const KucITSApp());
 }
 
@@ -23,8 +24,9 @@ class _KucITSAppState extends State<KucITSApp> {
 
   void _toggleTheme() {
     setState(() {
-      _themeMode =
-          _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
+      _themeMode = _themeMode == ThemeMode.dark
+          ? ThemeMode.light
+          : ThemeMode.dark;
     });
   }
 
@@ -46,7 +48,20 @@ class _KucITSAppState extends State<KucITSApp> {
         useMaterial3: true,
       ),
       themeMode: _themeMode,
-      home: TimelineScreen(onToggleTheme: _toggleTheme),
+      home: StreamBuilder<User?>(
+        stream: AuthService().authStateChanges,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          if (snapshot.hasData && snapshot.data != null) {
+            return TimelineScreen(onToggleTheme: _toggleTheme);
+          }
+          return const LoginScreen();
+        },
+      ),
     );
   }
 }
