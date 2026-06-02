@@ -1,11 +1,10 @@
 # KucITS — Technical Design Document
 
-> **Project:** KucITS (Kucing ITS)
-> **Course:** Mobile Programming (PPB) — Final Project
-> **Platform:** Android (primary), iOS, Web (secondary)
-> **Framework:** Flutter 3.x * Dart ^3.11
-> **Backend:** Firebase (Auth, Cloud Firestore, Storage, Messaging, Crashlytics)
-> **Last Updated:** 2026-06-02
+**Project:** KucITS (Kucing ITS)
+**Course:** Mobile Programming (PPB) B
+**Platform:** Android (primary), iOS, Web (secondary)
+**Framework:** Flutter 3.x * Dart ^3.11
+**Backend:** Firebase (Auth, Cloud Firestore, Storage, Messaging, Crashlytics)
 
 ---
 
@@ -31,7 +30,7 @@
 
 ### 1.1 Concept
 
-**KucITS** is a social-media-style mobile application built for the ITS (Institut Teknologi Sepuluh Nopember) campus community to share, discover, and keep track of campus cats. It serves as a forum to build a community around the cats in ITS.
+**KucITS** is a social-media-style mobile application built for the ITS (Institut Teknologi Sepuluh Nopember) campus community to share, discover, and keep track of campus cats. It serves as a forum to build a community around the cats in ITS. Think of it as a **Twitter/Instagram, but exclusively for campus cats**.
 
 - **Regular Users** can post about cats they meet, tag the related cat(s), tag a location using the Google Maps API, add a caption, and attach up to 4 photos. They can scroll through posts, like, and comment. They can also view a comprehensive Cat Database containing details about each cat (name, picture, department, neutered status) and filter posts by popularity or latest.
 - **Admin Users** are hand-picked by the developers. They act as moderators for the forum (able to delete inappropriate posts) and manage the Cat Database (add new cats, update statuses, remove cats). Typically, each department in ITS will have a few admins assigned to keep track of their local cats.
@@ -54,7 +53,7 @@
 
 ## 2. Technical Requirements
 
-Based on the course specifications, the app fulfills the following:
+Based on the course specifications, the app should fulfill the following:
 
 **Mandatory Specifications:**
 - Firebase Authentication
