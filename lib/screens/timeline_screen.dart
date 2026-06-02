@@ -4,6 +4,7 @@ import '../models/cat_post.dart';
 import '../widgets/compose_box.dart';
 import '../widgets/post_card.dart';
 import 'compose_screen.dart';
+import 'profile_management_screen.dart';
 import '../services/auth_service.dart';
 
 class TimelineScreen extends StatefulWidget {
@@ -108,6 +109,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
     );
   }
 
+  void _openProfilePage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ProfileManagementScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -124,9 +134,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
             ),
             icon: const Icon(Icons.person),
             tooltip: 'Profile',
-            onPressed: () {
-              print('Profile Pressed');
-            },
+            onPressed: _openProfilePage,
           ),
         ),
         title: const Text(
