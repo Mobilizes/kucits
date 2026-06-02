@@ -37,7 +37,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       ownerId: 'user_arya',
       ownerName: 'Arya',
       caption: 'Mochi just found her favorite sunspot in the dorm! 🌞',
-      photoUrl: 'https://placekitten.com/400/300',
+      photoUrl: 'https://placekittens.com/400/300',
       timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
       likes: 24,
       comments: 5,
@@ -52,7 +52,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       ownerId: 'user_budi',
       ownerName: 'Budi',
       caption: 'Biscuit and Nugget both want my laptop during finals week 💻',
-      photoUrl: 'https://placekitten.com/400/301',
+      photoUrl: 'https://placekittens.com/400/301',
       timestamp: DateTime.now().subtract(const Duration(hours: 2)),
       likes: 41,
       comments: 12,
@@ -64,7 +64,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       ownerId: 'user_citra',
       ownerName: 'Citra',
       caption: 'Luna decided the laundry basket is her throne today 👑',
-      photoUrl: 'https://placekitten.com/400/302',
+      photoUrl: 'https://placekittens.com/400/302',
       timestamp: DateTime.now().subtract(const Duration(hours: 5)),
       likes: 18,
       comments: 3,
@@ -76,7 +76,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       ownerId: 'user_dian',
       ownerName: 'Dian',
       caption: 'Oreo tried to eat my ramen. Not sharing. 🍜',
-      photoUrl: 'https://placekitten.com/400/303',
+      photoUrl: 'https://placekittens.com/400/303',
       timestamp: DateTime.now().subtract(const Duration(hours: 8)),
       likes: 33,
       comments: 7,
@@ -88,7 +88,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
       ownerId: 'user_eko',
       ownerName: 'Eko',
       caption: "Pudding's Monday mood. Same, buddy. 😴",
-      photoUrl: 'https://placekitten.com/400/304',
+      photoUrl: 'https://placekittens.com/400/304',
       timestamp: DateTime.now().subtract(const Duration(hours: 12)),
       likes: 57,
       comments: 14,
@@ -111,14 +111,22 @@ class _TimelineScreenState extends State<TimelineScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
         leading: Padding(
           padding: const EdgeInsets.all(8),
-          child: CircleAvatar(
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            child: const Icon(Icons.person, size: 18),
+          child: IconButton(
+            style: IconButton.styleFrom(
+              backgroundColor: colorScheme.primaryContainer,
+              foregroundColor: colorScheme.onPrimaryContainer,
+            ),
+            icon: const Icon(Icons.person),
+            tooltip: 'Profile',
+            onPressed: () {
+              print('Profile Pressed');
+            },
           ),
         ),
         title: const Text(
