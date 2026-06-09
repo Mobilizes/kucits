@@ -41,6 +41,25 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  Future<void> _signInAnonymously() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    final auth = AuthService();
+    final user = await auth.signInAnonymously();
+    if (user == null) {
+      setState(() {
+        _error = 'Could not continue as guest.';
+        _loading = false;
+      });
+    } else {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -219,6 +238,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                       child: const Text('Forgot password?'),
                                     ),
                                   ],
+                                ),
+                                const SizedBox(height: 8),
+                                const Divider(),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    onPressed: _loading ? null : _signInAnonymously,
+                                    icon: const Icon(Icons.person_outline),
+                                    label: const Text('Continue as Guest'),
+                                  ),
                                 ),
                               ],
                             ),

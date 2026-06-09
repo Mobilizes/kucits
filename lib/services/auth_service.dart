@@ -21,6 +21,15 @@ class AuthService {
     }
   }
 
+  Future<User?> signInAnonymously() async {
+    try {
+      UserCredential result = await _auth.signInAnonymously();
+      return result.user;
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<User?> registerWithEmailAndPassword(
     String email,
     String password,
@@ -32,7 +41,7 @@ class AuthService {
       // 1. Check if username is available first
       final isAvailable = await userService.isUsernameAvailable(username);
       if (!isAvailable) {
-        throw Exception('Username is already taken');
+        throw Exception('Username is already taken or database access denied.');
       }
 
       // 2. Create Auth User
@@ -48,13 +57,14 @@ class AuthService {
         if (!success) {
           // Fallback cleanup if profile creation fails
           await user.delete();
-          return null;
+          throw Exception('Failed to create user profile in database.');
         }
         return user;
       }
-      return null;
+      throw Exception('Failed to create account.');
     } catch (e) {
-      return null;
+      print('Registration Error: $e');
+      rethrow; // Rethrow to let the UI catch and display the specific error
     }
   }
 

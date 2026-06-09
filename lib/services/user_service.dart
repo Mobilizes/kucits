@@ -52,4 +52,54 @@ class UserService {
       return null;
     }
   }
+
+  Future<String?> changeUsername(String uid, String currentUsername, String newUsername) async {
+    try {
+      final profile = await getUserProfile(uid);
+      if (profile == null) return 'Profile not found';
+
+      final now = DateTime.now();
+      final diff = now.difference(profile.lastUsernameChange);
+      if (diff.inDays < 7) {
+        final daysLeft = 7 - diff.inDays;
+        return 'Cooldown active: Please wait $daysLeft more day(s).';
+      }
+
+      final isAvailable = await isUsernameAvailable(newUsername);
+      if (!isAvailable) {
+        return 'Username is already taken';
+      }
+
+      final batch = _db.batch();
+
+      // Delete old username
+      final oldUsernameRef = _db.collection('usernames').doc(currentUsername);
+      batch.delete(oldUsernameRef);
+
+      // Set new username
+      final newUsernameRef = _db.collection('usernames').doc(newUsername);
+      batch.set(newUsernameRef, {'uid': uid});
+
+      // Update user profile
+      final userRef = _db.collection('users').doc(uid);
+      batch.update(userRef, {
+        'username': newUsername,
+        'lastUsernameChange': Timestamp.fromDate(now),
+      });
+
+      await batch.commit();
+      return null; // Success
+    } catch (e) {
+      return 'An error occurred while changing username.';
+    }
+  }
+
+  Future<bool> updateBio(String uid, String newBio) async {
+    try {
+      await _db.collection('users').doc(uid).update({'bio': newBio});
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }

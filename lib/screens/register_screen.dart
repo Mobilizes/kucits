@@ -23,18 +23,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _error = null;
     });
     final auth = AuthService();
-    final user = await auth.registerWithEmailAndPassword(
-      _emailController.text.trim(),
-      _passwordController.text,
-      _usernameController.text.trim(),
-    );
-    if (user == null) {
-      setState(() {
-        _error = 'Could not create account.';
-        _loading = false;
-      });
-    } else {
-      if (mounted) Navigator.pop(context);
+    try {
+      final user = await auth.registerWithEmailAndPassword(
+        _emailController.text.trim(),
+        _passwordController.text,
+        _usernameController.text.trim(),
+      );
+      if (user != null && mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.toString().replaceFirst('Exception: ', '');
+          _loading = false;
+        });
+      }
     }
   }
 
