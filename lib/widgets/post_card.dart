@@ -43,7 +43,7 @@ class PostCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  'by ${post.ownerName}',
+                  'by ${post.authorUsername}',
                   style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
                 ),
               ],
@@ -113,10 +113,10 @@ class PostCard extends StatelessWidget {
           child: Icon(Icons.pets, size: 60, color: cs.onSurfaceVariant)),
     );
 
-    if (post.photoUrl.isEmpty) return placeholder;
+    if (post.photoUrls.isEmpty) return placeholder;
 
     return Image.network(
-      post.photoUrl,
+      post.photoUrls.first,
       width: double.infinity,
       height: 200,
       fit: BoxFit.cover,

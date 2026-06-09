@@ -9,6 +9,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -25,6 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final user = await auth.registerWithEmailAndPassword(
       _emailController.text.trim(),
       _passwordController.text,
+      _usernameController.text.trim(),
     );
     if (user == null) {
       setState(() {
@@ -38,6 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -128,6 +131,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             key: _formKey,
                             child: Column(
                               children: [
+                                TextFormField(
+                                  controller: _usernameController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Username',
+                                    prefixIcon: Icon(Icons.person_outline),
+                                  ),
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) {
+                                      return 'Enter username';
+                                    }
+                                    if (!RegExp(r'^[a-zA-Z0-9._]+$').hasMatch(v)) {
+                                      return 'Only letters, numbers, dot, underscore allowed';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 14),
                                 TextFormField(
                                   controller: _emailController,
                                   keyboardType: TextInputType.emailAddress,

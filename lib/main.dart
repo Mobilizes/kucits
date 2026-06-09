@@ -1,15 +1,31 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:kucits/firebase_options.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'screens/timeline_screen.dart';
-import 'screens/login_screen.dart';
+
+// Services
 import 'services/auth_service.dart';
+import 'services/user_service.dart';
+import 'services/cat_service.dart';
+import 'services/post_service.dart';
+
+// Router
+import 'app/router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const KucITSApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<AuthService>(create: (_) => AuthService()),
+        Provider<UserService>(create: (_) => UserService()),
+        Provider<CatService>(create: (_) => CatService()),
+        Provider<PostService>(create: (_) => PostService()),
+      ],
+      child: const KucITSApp(),
+    ),
+  );
 }
 
 class KucITSApp extends StatefulWidget {
@@ -33,7 +49,7 @@ class _KucITSAppState extends State<KucITSApp> {
   @override
   Widget build(BuildContext context) {
     const seed = Colors.orange;
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'KucITS',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
@@ -48,20 +64,7 @@ class _KucITSAppState extends State<KucITSApp> {
         useMaterial3: true,
       ),
       themeMode: _themeMode,
-      home: StreamBuilder<User?>(
-        stream: AuthService().authStateChanges,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-          if (snapshot.hasData && snapshot.data != null) {
-            return TimelineScreen(onToggleTheme: _toggleTheme);
-          }
-          return const LoginScreen();
-        },
-      ),
+      routerConfig: AppRouter.router,
     );
   }
 }

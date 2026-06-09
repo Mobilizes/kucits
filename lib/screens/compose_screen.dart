@@ -65,7 +65,7 @@ class _ComposeScreenState extends State<ComposeScreen> {
                     contentPadding: EdgeInsets.zero,
                     title: Text(cat.name,
                         style: const TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: Text(cat.breed),
+                    subtitle: Text(cat.department),
                     secondary: CircleAvatar(
                       backgroundColor:
                           Theme.of(context).colorScheme.primaryContainer,
@@ -106,10 +106,11 @@ class _ComposeScreenState extends State<ComposeScreen> {
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         cats: List.unmodifiable(_selectedCats),
         catIds: _selectedCats.map((c) => c.id).toList(),
-        ownerId: 'current_user',
-        ownerName: 'You',
+        authorId: 'current_user',
+        authorUsername: 'You',
+        authorAvatarUrl: '',
         caption: _captionController.text.trim(),
-        photoUrl: '',
+        photoUrls: [],
         timestamp: DateTime.now(),
       ),
     );

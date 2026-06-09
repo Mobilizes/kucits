@@ -5,10 +5,12 @@ class CatPost {
   final String id;
   final List<Cat> cats;
   final List<String> catIds;
-  final String ownerId;
-  final String ownerName;
+  final String authorId;
+  final String authorUsername;
+  final String authorAvatarUrl;
   final String caption;
-  final String photoUrl;
+  final List<String> photoUrls;
+  final GeoPoint? location;
   final DateTime timestamp;
   final int likes;
   final int comments;
@@ -17,10 +19,12 @@ class CatPost {
     required this.id,
     required this.cats,
     required this.catIds,
-    required this.ownerId,
-    required this.ownerName,
+    required this.authorId,
+    required this.authorUsername,
+    required this.authorAvatarUrl,
     required this.caption,
-    required this.photoUrl,
+    required this.photoUrls,
+    this.location,
     required this.timestamp,
     this.likes = 0,
     this.comments = 0,
@@ -35,28 +39,34 @@ class CatPost {
         return Cat.fromMap(m['id'] as String, m);
       }).toList(),
       catIds: List<String>.from((map['catIds'] as List<dynamic>?) ?? []),
-      ownerId: map['ownerId'] as String,
-      ownerName: (map['ownerName'] as String?) ?? '',
-      caption: map['caption'] as String,
-      photoUrl: (map['photoUrl'] as String?) ?? '',
-      timestamp: (map['timestamp'] as Timestamp).toDate(),
-      likes: (map['likes'] as int?) ?? 0,
-      comments: (map['comments'] as int?) ?? 0,
+      authorId: map['authorId'] as String? ?? '',
+      authorUsername: map['authorUsername'] as String? ?? '',
+      authorAvatarUrl: map['authorAvatarUrl'] as String? ?? '',
+      caption: map['caption'] as String? ?? '',
+      photoUrls: List<String>.from((map['photoUrls'] as List<dynamic>?) ?? []),
+      location: map['location'] as GeoPoint?,
+      timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      likes: map['likes'] as int? ?? 0,
+      comments: map['comments'] as int? ?? 0,
     );
   }
 
   factory CatPost.fromSnapshot(DocumentSnapshot<Map<String, dynamic>> doc) =>
       CatPost.fromMap(doc.id, doc.data()!);
 
-  Map<String, dynamic> toMap() => {
-        'cats': cats.map((c) => {'id': c.id, ...c.toMap()}).toList(),
-        'catIds': cats.map((c) => c.id).toList(),
-        'ownerId': ownerId,
-        'ownerName': ownerName,
-        'caption': caption,
-        'photoUrl': photoUrl,
-        'timestamp': Timestamp.fromDate(timestamp),
-        'likes': likes,
-        'comments': comments,
-      };
+  Map<String, dynamic> toMap() {
+    return {
+      'cats': cats.map((c) => {'id': c.id, ...c.toMap()}).toList(),
+      'catIds': catIds,
+      'authorId': authorId,
+      'authorUsername': authorUsername,
+      'authorAvatarUrl': authorAvatarUrl,
+      'caption': caption,
+      'photoUrls': photoUrls,
+      'location': location,
+      'timestamp': Timestamp.fromDate(timestamp),
+      'likes': likes,
+      'comments': comments,
+    };
+  }
 }
