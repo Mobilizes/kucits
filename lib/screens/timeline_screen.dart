@@ -1,132 +1,66 @@
 import 'package:flutter/material.dart';
-import '../models/cat.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import '../models/cat_post.dart';
 import '../widgets/compose_box.dart';
 import '../widgets/post_card.dart';
 import 'compose_screen.dart';
-import 'profile_management_screen.dart';
 import '../services/auth_service.dart';
+import '../services/post_service.dart';
+
+import '../app/theme_provider.dart';
 
 class TimelineScreen extends StatefulWidget {
-  final VoidCallback onToggleTheme;
-
-  const TimelineScreen({super.key, required this.onToggleTheme});
+  const TimelineScreen({super.key});
 
   @override
   State<TimelineScreen> createState() => _TimelineScreenState();
 }
 
 class _TimelineScreenState extends State<TimelineScreen> {
-  final List<Cat> _userCats = [
-    Cat(id: 'u1', name: 'Whiskers', department: 'Teknik Informatika', iconUrl: '', isNeutered: true, createdAt: DateTime.now()),
-    Cat(id: 'u2', name: 'Shadow', department: 'Sistem Informasi', iconUrl: '', isNeutered: false, createdAt: DateTime.now()),
-  ];
-
-  late List<CatPost> _posts;
-
-  @override
-  void initState() {
-    super.initState();
-    _posts = _seedPosts();
-  }
-
-  List<CatPost> _seedPosts() => [
-    CatPost(
-      id: '1',
-      cats: [Cat(id: 'c1', name: 'Mochi', department: 'Sistem Informasi', iconUrl: '', isNeutered: true, createdAt: DateTime.now())],
-      catIds: ['c1'],
-      authorId: 'user_arya',
-      authorUsername: 'Arya',
-      authorAvatarUrl: '',
-      caption: 'Mochi just found her favorite sunspot in the dorm! 🌞',
-      photoUrls: ['https://placekittens.com/400/300'],
-      timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
-      likes: 24,
-      comments: 5,
-    ),
-    CatPost(
-      id: '2',
-      cats: [
-        Cat(id: 'c2', name: 'Biscuit', department: 'Desain', iconUrl: '', isNeutered: false, createdAt: DateTime.now()),
-        Cat(id: 'c6', name: 'Nugget', department: 'Desain', iconUrl: '', isNeutered: true, createdAt: DateTime.now()),
-      ],
-      catIds: ['c2', 'c6'],
-      authorId: 'user_budi',
-      authorUsername: 'Budi',
-      authorAvatarUrl: '',
-      caption: 'Biscuit and Nugget both want my laptop during finals week 💻',
-      photoUrls: ['https://placekittens.com/400/301'],
-      timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      likes: 41,
-      comments: 12,
-    ),
-    CatPost(
-      id: '3',
-      cats: [Cat(id: 'c3', name: 'Luna', department: 'Teknik Fisika', iconUrl: '', isNeutered: true, createdAt: DateTime.now())],
-      catIds: ['c3'],
-      authorId: 'user_citra',
-      authorUsername: 'Citra',
-      authorAvatarUrl: '',
-      caption: 'Luna decided the laundry basket is her throne today 👑',
-      photoUrls: ['https://placekittens.com/400/302'],
-      timestamp: DateTime.now().subtract(const Duration(hours: 5)),
-      likes: 18,
-      comments: 3,
-    ),
-    CatPost(
-      id: '4',
-      cats: [Cat(id: 'c4', name: 'Oreo', department: 'Teknik Elektro', iconUrl: '', isNeutered: false, createdAt: DateTime.now())],
-      catIds: ['c4'],
-      authorId: 'user_dian',
-      authorUsername: 'Dian',
-      authorAvatarUrl: '',
-      caption: 'Oreo tried to eat my ramen. Not sharing. 🍜',
-      photoUrls: ['https://placekittens.com/400/303'],
-      timestamp: DateTime.now().subtract(const Duration(hours: 8)),
-      likes: 33,
-      comments: 7,
-    ),
-    CatPost(
-      id: '5',
-      cats: [Cat(id: 'c5', name: 'Pudding', department: 'Arsitektur', iconUrl: '', isNeutered: true, createdAt: DateTime.now())],
-      catIds: ['c5'],
-      authorId: 'user_eko',
-      authorUsername: 'Eko',
-      authorAvatarUrl: '',
-      caption: "Pudding's Monday mood. Same, buddy. 😴",
-      photoUrls: ['https://placekittens.com/400/304'],
-      timestamp: DateTime.now().subtract(const Duration(hours: 12)),
-      likes: 57,
-      comments: 14,
-    ),
-  ];
-
   void _openCompose() {
+    User? user;
+    try {
+      user = FirebaseAuth.instance.currentUser;
+    } catch (_) {}
+    if (user == null) {
+      _promptLogin('Please log in to report a cat encounter.');
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (_) => ComposeScreen(
-          userCats: _userCats,
-          onPost: (post) => setState(() => _posts.insert(0, post)),
-        ),
+        builder: (_) => const ComposeScreen(),
       ),
     );
   }
 
-  void _openProfilePage() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const ProfileManagementScreen(),
+  void _promptLogin(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        action: SnackBarAction(
+          label: 'Login',
+          onPressed: () {
+            context.push('/login');
+          },
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    User? currentUser;
+    try {
+      currentUser = FirebaseAuth.instance.currentUser;
+    } catch (_) {}
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
+    final postService = Provider.of<PostService>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -137,9 +71,15 @@ class _TimelineScreenState extends State<TimelineScreen> {
               backgroundColor: colorScheme.primaryContainer,
               foregroundColor: colorScheme.onPrimaryContainer,
             ),
-            icon: const Icon(Icons.person),
-            tooltip: 'Profile',
-            onPressed: _openProfilePage,
+            icon: Icon(currentUser != null ? Icons.person : Icons.login),
+            tooltip: currentUser != null ? 'Profile' : 'Log in',
+            onPressed: () {
+              if (currentUser != null) {
+                context.go('/profile');
+              } else {
+                context.push('/login');
+              }
+            },
           ),
         ),
         title: const Text(
@@ -151,34 +91,70 @@ class _TimelineScreenState extends State<TimelineScreen> {
           IconButton(
             icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
             tooltip: isDark ? 'Light mode' : 'Dark mode',
-            onPressed: widget.onToggleTheme,
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Sign out',
-            onPressed: () async {
-              // sign out and let StreamBuilder in main.dart handle navigation
-              await AuthService().signOut();
+            onPressed: () {
+              Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
             },
           ),
+          if (currentUser != null)
+            IconButton(
+              icon: const Icon(Icons.logout),
+              tooltip: 'Sign out',
+              onPressed: () async {
+                final messenger = ScaffoldMessenger.of(context);
+                final auth = Provider.of<AuthService>(context, listen: false);
+                await auth.signOut();
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Signed out successfully.')),
+                );
+                if (mounted) {
+                  setState(() {}); // Rebuild header state
+                }
+              },
+            ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async => await Future.delayed(const Duration(seconds: 1)),
-        child: ListView.builder(
-          itemCount: _posts.length + 2,
-          itemBuilder: (_, index) {
-            if (index == 0) return ComposeBox(onTap: _openCompose);
-            if (index == 1) {
-              return Divider(
-                height: 1,
-                thickness: 1,
-                color: Theme.of(context).colorScheme.outlineVariant,
-              );
-            }
-            return PostCard(post: _posts[index - 2]);
-          },
-        ),
+      body: StreamBuilder<List<CatPost>>(
+        stream: postService.streamFeed(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Error loading feed: ${snapshot.error}',
+                style: TextStyle(color: colorScheme.error),
+              ),
+            );
+          }
+
+          final posts = snapshot.data ?? [];
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              // Wait short duration to simulate refresh. StreamBuilder will auto-fetch latest anyway.
+              await Future.delayed(const Duration(milliseconds: 500));
+            },
+            child: ListView.builder(
+              itemCount: posts.length + 2,
+              itemBuilder: (_, index) {
+                if (index == 0) {
+                  return ComposeBox(onTap: _openCompose);
+                }
+                if (index == 1) {
+                  return Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: colorScheme.outlineVariant,
+                  );
+                }
+                final post = posts[index - 2];
+                return PostCard(post: post);
+              },
+            ),
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _openCompose,

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import '../models/cat.dart';
 import '../models/cat_post.dart';
+import '../services/post_service.dart';
+import '../screens/post_detail_screen.dart';
 
 class PostCard extends StatelessWidget {
   final CatPost post;
@@ -11,14 +15,25 @@ class PostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(context),
-          _buildPhoto(context),
-          _buildCaption(),
-          _buildInteractions(),
-        ],
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PostDetailScreen(post: post),
+            ),
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(context),
+            _buildPhoto(context),
+            _buildCaption(),
+            _buildInteractions(context),
+          ],
+        ),
       ),
     );
   }
@@ -69,14 +84,12 @@ class PostCard extends StatelessWidget {
       height: radius * 2,
       child: Stack(
         children: [
-          // Second avatar behind (slightly offset right)
           if (cats.length > 1)
             Positioned(
               left: overlap,
               child: _avatar(cats[1], radius, cs.secondaryContainer,
                   cs.onSecondaryContainer),
             ),
-          // First avatar in front
           Positioned(
             left: 0,
             child: _avatar(
@@ -94,11 +107,21 @@ class PostCard extends StatelessWidget {
       child: cat.iconUrl.isEmpty
           ? Text(cat.name[0],
               style: TextStyle(fontWeight: FontWeight.bold, color: fg))
-          : Image.network(cat.iconUrl),
+          : ClipOval(
+              child: Image.network(
+                cat.iconUrl,
+                width: radius * 2,
+                height: radius * 2,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Text(cat.name[0],
+                    style: TextStyle(fontWeight: FontWeight.bold, color: fg)),
+              ),
+            ),
     );
   }
 
   String _catNames(List<Cat> cats) {
+    if (cats.isEmpty) return 'Unknown Cat';
     if (cats.length == 1) return cats[0].name;
     if (cats.length == 2) return '${cats[0].name} & ${cats[1].name}';
     return '${cats[0].name} & ${cats.length - 1} more';
@@ -131,20 +154,55 @@ class PostCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInteractions() {
+  Widget _buildInteractions(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final postService = Provider.of<PostService>(context, listen: false);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.favorite_border, size: 20),
-            onPressed: () {},
-          ),
-          Text('${post.likes}', style: const TextStyle(fontSize: 13)),
+          if (currentUser != null)
+            StreamBuilder<bool>(
+              stream: postService.streamIsLiked(post.id, currentUser.uid),
+              builder: (context, snapshot) {
+                final isLiked = snapshot.data ?? false;
+                return Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        isLiked ? Icons.favorite : Icons.favorite_border,
+                        size: 20,
+                        color: isLiked ? Colors.red : null,
+                      ),
+                      onPressed: () => postService.toggleLike(post.id, currentUser.uid),
+                    ),
+                    Text('${post.likes}', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+                  ],
+                );
+              },
+            )
+          else
+            Row(
+              children: [
+                const IconButton(
+                  icon: Icon(Icons.favorite_border, size: 20, color: Colors.grey),
+                  onPressed: null,
+                ),
+                Text('${post.likes}', style: const TextStyle(fontSize: 13)),
+              ],
+            ),
           const SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.chat_bubble_outline, size: 20),
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PostDetailScreen(post: post),
+                ),
+              );
+            },
           ),
           Text('${post.comments}', style: const TextStyle(fontSize: 13)),
         ],
@@ -154,6 +212,7 @@ class PostCard extends StatelessWidget {
 
   String _formatTimestamp(DateTime dt) {
     final diff = DateTime.now().difference(dt);
+    if (diff.inMinutes < 1) return 'Just now';
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
     if (diff.inHours < 24) return '${diff.inHours}h ago';
     return '${diff.inDays}d ago';

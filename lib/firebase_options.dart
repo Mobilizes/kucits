@@ -56,7 +56,6 @@ class DefaultFirebaseOptions {
     projectId: 'kucits-200f2',
     storageBucket: 'kucits-200f2.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyAWqDqovdxAiudhunZW_FNXcEd4WvTjxuM',
     appId: '1:547929824611:ios:cc948eca845ed682468756',
@@ -65,7 +64,6 @@ class DefaultFirebaseOptions {
     storageBucket: 'kucits-200f2.firebasestorage.app',
     iosBundleId: 'com.example.kucits',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyAWqDqovdxAiudhunZW_FNXcEd4WvTjxuM',
     appId: '1:547929824611:ios:cc948eca845ed682468756',
@@ -83,5 +81,4 @@ class DefaultFirebaseOptions {
     authDomain: 'kucits-200f2.firebaseapp.com',
     storageBucket: 'kucits-200f2.firebasestorage.app',
   );
-
 }

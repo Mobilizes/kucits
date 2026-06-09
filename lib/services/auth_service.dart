@@ -2,9 +2,15 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'user_service.dart';
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseAuth get _auth => FirebaseAuth.instance;
 
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  Stream<User?> get authStateChanges {
+    try {
+      return _auth.authStateChanges();
+    } catch (_) {
+      return const Stream.empty();
+    }
+  }
 
   Future<User?> signInWithEmailAndPassword(
     String email,
@@ -78,6 +84,10 @@ class AuthService {
   }
 
   Future<void> signOut() async {
-    await _auth.signOut();
+    try {
+      await _auth.signOut();
+    } catch (_) {
+      // Ignore
+    }
   }
 }

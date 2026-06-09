@@ -1,7 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../services/user_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/user_profile.dart';
+import '../services/user_service.dart';
 
 class ProfileManagementScreen extends StatefulWidget {
   const ProfileManagementScreen({super.key});
@@ -18,6 +18,7 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
 
   bool _isLoading = true;
   bool _saving = false;
+  bool _loading = true;
   UserProfile? _userProfile;
   String _initialUsername = '';
 
@@ -127,6 +128,12 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     final colorScheme = Theme.of(context).colorScheme;
     final user = FirebaseAuth.instance.currentUser;
     final email = user?.email ?? 'No email connected';

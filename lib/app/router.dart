@@ -6,6 +6,8 @@ import '../screens/timeline_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/reset_password_screen.dart';
+
+import '../screens/profile_management_screen.dart';
 import 'dart:async';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -80,9 +82,7 @@ class AppRouter {
           GoRoute(
             path: '/',
             builder: (BuildContext context, GoRouterState state) {
-              // Timeline screen handles theme toggling, we'll need to adjust this in main.dart
-              // For now, let's pass a dummy or use InheritedWidget later.
-              return TimelineScreen(onToggleTheme: () {});
+              return const TimelineScreen();
             },
           ),
           GoRoute(
@@ -96,8 +96,18 @@ class AppRouter {
           GoRoute(
             path: '/profile',
             builder: (BuildContext context, GoRouterState state) {
-              return const Scaffold(
-                body: Center(child: Text('User Profile Screen - Coming Soon')),
+              return StreamBuilder<User?>(
+                stream: FirebaseAuth.instance.authStateChanges(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+                  }
+                  final user = snapshot.data;
+                  if (user == null) {
+                    return const LoginScreen();
+                  }
+                  return const ProfileManagementScreen();
+                },
               );
             },
           ),
