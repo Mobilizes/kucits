@@ -278,9 +278,9 @@ firestore-root/
 │               ├── text: string
 │               └── timestamp: timestamp
 │
-├── likes/                        # Track likes to prevent duplicates
-│   └── {postId}/
-│       └── {uid}: true
+│       └── likes/                # Subcollection to track likes (1 doc per like)
+│           └── {uid}/            # Document ID is the user's UID
+│               └── timestamp: timestamp
 │
 └── usernames/                    # Username uniqueness enforcement
     └── {username}: {uid}
@@ -318,7 +318,7 @@ storage-root/
 
 ### 8.3 Post Creation (Forum)
 - **Tagging**: Every post must tag at least one cat from the database.
-- **Media**: Users can upload up to 4 photos per post. Maximum file size is 10MB per picture.
+- **Media**: Users can upload up to 4 photos per post. To prevent excessive bandwidth and storage usage, images are automatically downscaled and compressed on the client side (e.g., max 1080p, JPEG quality 80) using the `flutter_image_compress` package before uploading to Firebase Storage.
 - **Location**: Users can tag a location using the Google Maps API.
 - **Caption**: Text description of the encounter.
 
@@ -370,19 +370,20 @@ storage-root/
 
 ## 10. Tech Stack & Dependencies
 
-| Package                | Purpose                                         |
-|------------------------|-------------------------------------------------|
-| `flutter` (SDK)        | Core framework                                  |
-| `firebase_core`        | Firebase initialisation                         |
-| `firebase_auth`        | Authentication                                  |
-| `cloud_firestore`      | Database                                        |
-| `firebase_storage`     | Photo uploads (posts, avatars, cat icons)       |
-| `firebase_messaging`   | Push notifications (Mandatory Spec)             |
-| `firebase_crashlytics` | Real-time crash reporting (Bonus Spec)          |
-| `provider`             | State management and dependency injection       |
-| `google_maps_flutter`  | Interactive map integration and location tags   |
-| `image_picker`         | Camera/gallery access (max 4 photos, 10MB limit)|
-| `cached_network_image` | Cached image loading with placeholders          |
+| Package                 | Purpose                                         |
+|-------------------------|-------------------------------------------------|
+| `flutter` (SDK)         | Core framework                                  |
+| `firebase_core`         | Firebase initialisation                         |
+| `firebase_auth`         | Authentication                                  |
+| `cloud_firestore`       | Database                                        |
+| `firebase_storage`      | Photo uploads (posts, avatars, cat icons)       |
+| `firebase_messaging`    | Push notifications (Mandatory Spec)             |
+| `firebase_crashlytics`  | Real-time crash reporting (Bonus Spec)          |
+| `provider`              | State management and dependency injection       |
+| `google_maps_flutter`   | Interactive map integration and location tags   |
+| `image_picker`          | Camera/gallery access (max 4 photos)            |
+| `flutter_image_compress`| Client-side image resizing and compression      |
+| `cached_network_image`  | Cached image loading with placeholders          |
 
 *(Note: Google Sign-In is intentionally excluded to focus on core requirements, though it may be added later if time permits.)*
 
@@ -466,5 +467,5 @@ storage-root/
 - **Anonymous Access**: Allowed for browsing the feed and database, but interaction (posting, liking, commenting) requires authentication.
 - **Mapping**: `google_maps_flutter` will be used to display locations and tag posts.
 - **Moderation**: Hand-picked admins manage the cat database and can delete inappropriate posts.
-- **Post Limits**: No limit on the number of cats tagged in a post. Maximum of 4 photos per post, with a 10MB file size limit per photo.
+- **Post Limits**: Users can tag multiple cats in a post. Note: due to Firestore's `array-contains-any` query limits, filtering by multiple cats at once is restricted to a maximum of 10 cats per query. Maximum of 4 photos per post, downscaled using `flutter_image_compress` before upload.
 - **Follow System**: Deprioritized. The app focuses on the global forum and department-based database rather than individual follow feeds.
