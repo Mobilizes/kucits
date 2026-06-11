@@ -18,7 +18,6 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
 
   bool _isLoading = true;
   bool _saving = false;
-  bool _loading = true;
   UserProfile? _userProfile;
   String _initialUsername = '';
 
@@ -128,7 +127,7 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
+    if (_isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );

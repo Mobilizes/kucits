@@ -24,7 +24,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     try {
       user = FirebaseAuth.instance.currentUser;
     } catch (_) {}
-    if (user == null) {
+    if (user == null || user.isAnonymous) {
       _promptLogin('Please log in to report a cat encounter.');
       return;
     }
@@ -71,10 +71,10 @@ class _TimelineScreenState extends State<TimelineScreen> {
               backgroundColor: colorScheme.primaryContainer,
               foregroundColor: colorScheme.onPrimaryContainer,
             ),
-            icon: Icon(currentUser != null ? Icons.person : Icons.login),
-            tooltip: currentUser != null ? 'Profile' : 'Log in',
+            icon: Icon(currentUser != null && !currentUser.isAnonymous ? Icons.person : Icons.login),
+            tooltip: currentUser != null && !currentUser.isAnonymous ? 'Profile' : 'Log in',
             onPressed: () {
-              if (currentUser != null) {
+              if (currentUser != null && !currentUser.isAnonymous) {
                 context.go('/profile');
               } else {
                 context.push('/login');

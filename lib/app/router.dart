@@ -35,14 +35,17 @@ final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>(
 );
 
 class AppRouter {
+  static Stream<User?> authStateStream = FirebaseAuth.instance.authStateChanges();
+  static User? Function() getCurrentUser = () => FirebaseAuth.instance.currentUser;
+
   static final GoRouter router = GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     refreshListenable: GoRouterRefreshStream(
-      FirebaseAuth.instance.authStateChanges(),
+      authStateStream,
     ),
     redirect: (BuildContext context, GoRouterState state) {
-      final bool loggedIn = FirebaseAuth.instance.currentUser != null;
+      final bool loggedIn = getCurrentUser() != null;
       final bool isAuthRoute =
           state.uri.path == '/login' ||
           state.uri.path == '/register' ||

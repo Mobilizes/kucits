@@ -193,9 +193,9 @@ class _ComposeScreenState extends State<ComposeScreen> {
 
   Future<void> _submit() async {
     final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
+    if (currentUser == null || currentUser.isAnonymous) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You must be logged in to post.')),
+        const SnackBar(content: Text('You must be logged in with an account to post.')),
       );
       return;
     }

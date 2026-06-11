@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'user_service.dart';
 
 class AuthService {
@@ -69,7 +70,7 @@ class AuthService {
       }
       throw Exception('Failed to create account.');
     } catch (e) {
-      print('Registration Error: $e');
+      debugPrint('Registration Error: $e');
       rethrow; // Rethrow to let the UI catch and display the specific error
     }
   }

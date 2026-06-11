@@ -162,7 +162,7 @@ class PostCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(4, 0, 4, 4),
       child: Row(
         children: [
-          if (currentUser != null)
+          if (currentUser != null && !currentUser.isAnonymous)
             StreamBuilder<bool>(
               stream: postService.streamIsLiked(post.id, currentUser.uid),
               builder: (context, snapshot) {

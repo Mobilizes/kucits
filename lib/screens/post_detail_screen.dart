@@ -35,9 +35,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     if (text.isEmpty) return;
 
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
+    if (user == null || user.isAnonymous) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You must be logged in to comment.')),
+        const SnackBar(content: Text('You must be logged in with an account to comment.')),
       );
       return;
     }
@@ -367,7 +367,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           // Likes / Comments interactive count bar
           Row(
             children: [
-              if (currentUser != null)
+              if (currentUser != null && !currentUser.isAnonymous)
                 StreamBuilder<bool>(
                   stream: postService.streamIsLiked(post.id, currentUser.uid),
                   builder: (context, likeSnapshot) {
@@ -484,7 +484,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
   Widget _buildCommentInputSection(BuildContext context, String postId) {
     final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) {
+    if (currentUser == null || currentUser.isAnonymous) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
