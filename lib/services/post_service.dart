@@ -20,6 +20,24 @@ class PostService {
       return const Stream.empty();
     }
   }
+
+  Stream<List<CatPost>> streamPostsForUser(String userId) {
+    try {
+      return _db
+          .collection('posts')
+          .where('authorId', isEqualTo: userId)
+          .snapshots()
+          .map((snapshot) {
+        final posts = snapshot.docs
+            .map((doc) => CatPost.fromSnapshot(doc as DocumentSnapshot<Map<String, dynamic>>))
+            .toList();
+        posts.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        return posts;
+      });
+    } catch (_) {
+      return const Stream.empty();
+    }
+  }
   
   Stream<List<CatPost>> streamPostsForCat(String catId, {bool sortByPopularity = false}) {
     try {

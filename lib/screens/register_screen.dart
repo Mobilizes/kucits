@@ -54,18 +54,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              colorScheme.secondaryContainer.withValues(alpha: 0.92),
-              Theme.of(context).colorScheme.surface,
-            ],
+      body: SizedBox.expand(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Theme.of(context).brightness == Brightness.dark
+                    ? colorScheme.surface
+                    : colorScheme.secondaryContainer.withValues(alpha: 0.92),
+                Theme.of(context).brightness == Brightness.dark
+                    ? Theme.of(context).scaffoldBackgroundColor
+                    : colorScheme.surface,
+              ],
+            ),
           ),
-        ),
-        child: SafeArea(
+          child: SafeArea(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Center(
@@ -86,20 +91,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: colorScheme.surface.withValues(alpha: 0.78),
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? colorScheme.surface
+                            : colorScheme.surface.withValues(alpha: 0.78),
                         borderRadius: BorderRadius.circular(32),
                         border: Border.all(
                           color: colorScheme.outlineVariant.withValues(
                             alpha: 0.45,
                           ),
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 28,
-                            offset: const Offset(0, 16),
-                          ),
-                        ],
+                        boxShadow: Theme.of(context).brightness == Brightness.dark
+                            ? []
+                            : [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 28,
+                                  offset: const Offset(0, 16),
+                                ),
+                              ],
                       ),
                       child: Column(
                         children: [
@@ -230,6 +239,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
             ),
+          ),
           ),
         ),
       ),

@@ -44,11 +44,14 @@ dependencies:
   image_picker: ^1.2.2
   firebase_storage: ^13.4.2
   path_provider: ^2.1.5
+  google_fonts: ^6.2.0
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   firebase_auth_mocks: ^0.15.0
+  flutter_launcher_icons: ^0.13.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -98,3 +101,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/KucITS-icon.png"
+  adaptive_icon_background: "#0A1931"
+  adaptive_icon_foreground: "assets/KucITS-icon-padded.png"

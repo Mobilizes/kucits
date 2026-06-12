@@ -74,23 +74,23 @@ Based on the course specifications, the app should fulfill the following:
 | Area               | Details                                                                 |
 |--------------------|-------------------------------------------------------------------------|
 | **Firebase Setup** | Firebase Core, Auth, and Firestore SDKs integrated. Multi-platform config. |
-| **Authentication** | Full email/password auth flow: Login, Register, Reset Password. Auth state stream drives root navigation. |
+| **Authentication** | Full email/password auth and anonymous guest sign-in. Integrated with GoRouter redirection. |
 | **Auth Service**   | `AuthService` class wrapping `FirebaseAuth`. |
-| **Theme System**   | Material 3 with `ColorScheme.fromSeed(seedColor: Colors.orange)`. Light/dark mode toggle at runtime. |
-| **Timeline Screen**| Scrollable feed with `RefreshIndicator`, `ComposeBox` prompt at top, hardcoded seed posts. |
-| **Compose Screen** | Full-screen compose dialog: tag cats from a picker, write caption (280 char limit with visual counter), post creation. |
-| **Data Models**    | Basic `Cat` and `CatPost` models with Firestore serialisation. |
+| **Theme System**   | Custom Material 3 theme with Montserrat font and ITS Blue. Dark mode uses neutral gray palette, and settings persist via `shared_preferences`. |
+| **Timeline Screen**| Scrollable feed with `RefreshIndicator`, showing real posts streamed from Firestore. |
+| **Compose Screen** | Full-screen compose screen with cat tagging, caption length validation, and Firestore post creation. |
+| **User Profile**   | Tab 3 displaying user initials, bio, post count chip, and a 3-column photo grid of the user's posts. |
+| **Settings Screen**| Dedicated settings screen (`/settings`) for dark mode toggling and account sign-out with confirmation. |
+| **Data Models**    | `Cat`, `CatPost`, and `UserProfile` models with Firestore serialisation. |
 
 ### 3.2 What Is Placeholder / Not Yet Functional (Pending)
 
 | Area                     | Current State                                                            |
 |--------------------------|--------------------------------------------------------------------------|
-| **Firestore Integration**| `DatabaseService` exists but only has a generic `addData` / `getData` for `users`. |
-| **Timeline Data**        | Posts are hardcoded seed data. No Firestore reads. Map integration missing. |
-| **Compose -> Firestore** | Compose creates a local object but does **not** write to Firestore. No location or image upload. |
-| **User Profile**         | No user profile screen, username system, or user model. |
-| **Cat Database**         | No dedicated cat database screen or department filtering. |
-| **Moderation**           | No admin roles or post deletion capabilities. |
+| **Map Integration**      | Campus map overlay is still a placeholder. Location tagging in posts is pending. |
+| **Media Uploads**        | Post image selection (max 4 photos) and Firebase Storage upload are pending. |
+| **Cat Database**         | Dedicated database screen, department filtering, and detail page are placeholders. |
+| **Moderation & Likes**   | Admin check capabilities and like/comment interactions are pending. |
 
 ---
 
@@ -380,6 +380,8 @@ storage-root/
 | `firebase_messaging`    | Push notifications (Mandatory Spec)             |
 | `firebase_crashlytics`  | Real-time crash reporting (Bonus Spec)          |
 | `provider`              | State management and dependency injection       |
+| `go_router`             | Declarative routing and redirect logic          |
+| `shared_preferences`    | Persistent local key-value settings storage     |
 | `google_maps_flutter`   | Interactive map integration and location tags   |
 | `image_picker`          | Camera/gallery access (max 4 photos)            |
 | `flutter_image_compress`| Client-side image resizing and compression      |
@@ -451,20 +453,30 @@ storage-root/
 - Services currently swallow exceptions and return `null` — should evolve to use `Result` types or rethrow with custom exceptions for better UX error messages
 
 ### 12.6 UI Patterns
-- Material 3 design system via `ColorScheme.fromSeed`
-- Access colors via `Theme.of(context).colorScheme` — never hardcode colors
-- Glassmorphic card style on auth screens (semi-transparent surface, blur, subtle border)
-- All form screens are `SingleChildScrollView` wrapped with `ConstrainedBox(maxWidth: 520)` for responsive layout
+- **Material 3 Design System**: Implemented using custom color schemes matching the myITS Portal visual guidelines:
+  - **Light Mode Colors**: Primary ITS Blue (`#004B93`), Scaffold background (`#F4F7FC`), surfaces/cards (`#FFFFFF`), main text (`#0F172A`).
+  - **Dark Mode Colors**: Primary Light Blue (`#4FA1D8`), Scaffold background (`#121212` neutral gray), surfaces/cards (`#1E1E1E`), active containers (`#2C2C2C`), main text (`#F3F4F6`), secondary text (`#9CA3AF`).
+- **Typography**: The primary typeface is **Montserrat** (imported via Google Fonts) for a modern, geometric look. Font guidelines use Montserrat for all headings and body text styles, replacing standard system fallbacks.
+- **Theme Access**: Access colors via `Theme.of(context).colorScheme` — never hardcode hex colors in UI components.
+- **Theme Toggle & Persistence**: Switch dark/light themes dynamically via a global `ThemeProvider` and settings screen switch. State is persistently saved using `shared_preferences` and reloaded on startup.
+- **Seamless Gradient Backgrounds**: Auth screens use a gradient background that adapts to theme settings (blending down to `scaffoldBackgroundColor` in dark mode to ensure a seamless layout without horizontal bar overlaps).
+- **Glassmorphic Card**: Semi-transparent surfaces (on light mode) or solid surfaces (on dark mode to prevent shadow transparency blending issues), rounded corners (`32`), and subtle outline borders on auth screens to give a premium design feel.
+- **Responsive Layout**: Constrained layout screens utilizing a maximum width of `520` wrapped in `SingleChildScrollView`.
 
 ---
 
 ## 13. Design Decisions
 
 - **State Management**: `Provider` will be used for state management and DI.
+- **Visual Branding (myITS)**: App icon and color system are aligned directly with the ITS/DPTSI visual brand. The icon file (`assets/KucITS-icon.png`) is the official app launch icon.
+- **Typography Choice**: Montserrat is utilized as the primary font to mirror the myITS web portal interface.
+- **Theme Persistence**: Theme selections (dark vs. light mode) are saved in local device storage via `shared_preferences` so they are kept across app launches.
+- **Clean Dark Mode Styling**: Cards use solid background fills and disable drop shadows in dark mode to prevent transparency artifacts or muddy outlines. Gradients seamlessly blend into the Scaffold's background color.
+- **Core App Loop & Navigation**: Handled declaratively via `go_router` at root, showing specific tabs (Timeline, Cat Database, User Profile) and delegating theme selection/account management to a dedicated Settings route (`/settings`).
 - **Backend Logic**: Sticking to client-side logic and Firestore rules (Free tier) rather than relying heavily on Cloud Functions.
 - **Usernames**: Enforced unique usernames (letters, numbers, dots, underscores). Changeable once per week.
 - **Cat Deletion**: If a cat is deleted by an admin, existing posts tagged with that cat will be orphaned (post remains, reference is dead/placeholder).
-- **Anonymous Access**: Allowed for browsing the feed and database, but interaction (posting, liking, commenting) requires authentication.
+- **Anonymous Access**: Allowed for browsing the feed and database, but interaction (posting, liking, commenting) requires authentication. Anonymous guests can tap a "Sign In or Register" action on the Profile screen to trigger auth flow.
 - **Mapping**: `google_maps_flutter` will be used to display locations and tag posts.
 - **Moderation**: Hand-picked admins manage the cat database and can delete inappropriate posts.
 - **Post Limits**: Users can tag multiple cats in a post. Note: due to Firestore's `array-contains-any` query limits, filtering by multiple cats at once is restricted to a maximum of 10 cats per query. Maximum of 4 photos per post, downscaled using `flutter_image_compress` before upload.

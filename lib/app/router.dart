@@ -8,6 +8,8 @@ import '../screens/register_screen.dart';
 import '../screens/reset_password_screen.dart';
 
 import '../screens/profile_management_screen.dart';
+import '../screens/settings_screen.dart';
+import '../screens/user_profile_screen.dart';
 import 'dart:async';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -45,19 +47,22 @@ class AppRouter {
       authStateStream,
     ),
     redirect: (BuildContext context, GoRouterState state) {
-      final bool loggedIn = getCurrentUser() != null;
+      final user = getCurrentUser();
+      final bool loggedIn = user != null;
+      final bool hasAccount = user != null && !user.isAnonymous;
       final bool isAuthRoute =
           state.uri.path == '/login' ||
           state.uri.path == '/register' ||
           state.uri.path == '/reset-password';
 
-      // If not logged in and not on auth route, go to login.
+      // If not logged in at all (no user object), redirect to login.
       if (!loggedIn && !isAuthRoute) {
         return '/login';
       }
 
-      // If logged in and trying to access auth screens, go to home.
-      if (loggedIn && isAuthRoute) {
+      // If fully authenticated (non-anonymous) and trying to access auth screens, go to home.
+      // Anonymous guests are allowed through so they can upgrade their account.
+      if (hasAccount && isAuthRoute) {
         return '/';
       }
 
@@ -73,6 +78,14 @@ class AppRouter {
       GoRoute(
         path: '/reset-password',
         builder: (context, state) => const ResetPasswordScreen(),
+      ),
+      GoRoute(
+        path: '/profile-management',
+        builder: (context, state) => const ProfileManagementScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
 
       // Bottom Nav routes
@@ -109,7 +122,7 @@ class AppRouter {
                   if (user == null) {
                     return const LoginScreen();
                   }
-                  return const ProfileManagementScreen();
+                  return const UserProfileScreen();
                 },
               );
             },

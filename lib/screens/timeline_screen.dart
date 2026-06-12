@@ -6,10 +6,7 @@ import '../models/cat_post.dart';
 import '../widgets/compose_box.dart';
 import '../widgets/post_card.dart';
 import 'compose_screen.dart';
-import '../services/auth_service.dart';
 import '../services/post_service.dart';
-
-import '../app/theme_provider.dart';
 
 class TimelineScreen extends StatefulWidget {
   const TimelineScreen({super.key});
@@ -54,34 +51,11 @@ class _TimelineScreenState extends State<TimelineScreen> {
 
   @override
   Widget build(BuildContext context) {
-    User? currentUser;
-    try {
-      currentUser = FirebaseAuth.instance.currentUser;
-    } catch (_) {}
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
     final postService = Provider.of<PostService>(context);
 
     return Scaffold(
       appBar: AppBar(
-        leading: Padding(
-          padding: const EdgeInsets.all(8),
-          child: IconButton(
-            style: IconButton.styleFrom(
-              backgroundColor: colorScheme.primaryContainer,
-              foregroundColor: colorScheme.onPrimaryContainer,
-            ),
-            icon: Icon(currentUser != null && !currentUser.isAnonymous ? Icons.person : Icons.login),
-            tooltip: currentUser != null && !currentUser.isAnonymous ? 'Profile' : 'Log in',
-            onPressed: () {
-              if (currentUser != null && !currentUser.isAnonymous) {
-                context.go('/profile');
-              } else {
-                context.push('/login');
-              }
-            },
-          ),
-        ),
         title: const Text(
           'KucITS 🐱',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
@@ -89,28 +63,14 @@ class _TimelineScreenState extends State<TimelineScreen> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
-            tooltip: isDark ? 'Light mode' : 'Dark mode',
+            icon: const Icon(Icons.notifications_outlined),
+            tooltip: 'Notifications',
             onPressed: () {
-              Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Notifications coming soon!')),
+              );
             },
           ),
-          if (currentUser != null)
-            IconButton(
-              icon: const Icon(Icons.logout),
-              tooltip: 'Sign out',
-              onPressed: () async {
-                final messenger = ScaffoldMessenger.of(context);
-                final auth = Provider.of<AuthService>(context, listen: false);
-                await auth.signOut();
-                messenger.showSnackBar(
-                  const SnackBar(content: Text('Signed out successfully.')),
-                );
-                if (mounted) {
-                  setState(() {}); // Rebuild header state
-                }
-              },
-            ),
         ],
       ),
       body: StreamBuilder<List<CatPost>>(

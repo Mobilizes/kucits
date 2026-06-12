@@ -9,8 +9,8 @@ import 'services/user_service.dart';
 import 'services/cat_service.dart';
 import 'services/post_service.dart';
 import 'services/storage_service.dart';
-
 import 'app/theme_provider.dart';
+import 'app/theme.dart';
 
 // Router
 import 'app/router.dart';
@@ -27,8 +27,6 @@ class KucITSApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const seed = Colors.orange;
-
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<ThemeProvider>(create: (_) => ThemeProvider()),
@@ -44,17 +42,8 @@ class KucITSApp extends StatelessWidget {
           return MaterialApp.router(
             title: 'KucITS',
             debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: seed),
-              useMaterial3: true,
-            ),
-            darkTheme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: seed,
-                brightness: Brightness.dark,
-              ),
-              useMaterial3: true,
-            ),
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
             routerConfig: AppRouter.router,
           );
