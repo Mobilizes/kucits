@@ -78,19 +78,19 @@ Based on the course specifications, the app should fulfill the following:
 | **Auth Service**   | `AuthService` class wrapping `FirebaseAuth`. |
 | **Theme System**   | Custom Material 3 theme with Montserrat font and ITS Blue. Dark mode uses neutral gray palette, and settings persist via `shared_preferences`. |
 | **Timeline Screen**| Scrollable feed with `RefreshIndicator`, showing real posts streamed from Firestore. |
-| **Compose Screen** | Full-screen compose screen with cat tagging, caption length validation, and Firestore post creation. |
+| **Compose Screen** | Full-screen compose screen with cat tagging, caption length validation, location tagging selection, and Firestore post creation. |
 | **User Profile**   | Tab 3 displaying user initials, bio, post count chip, and a 3-column photo grid of the user's posts. |
 | **Settings Screen**| Dedicated settings screen (`/settings`) for dark mode toggling and account sign-out with confirmation. |
+| **Map Integration**| Fully functional Map tab (`/map`) displaying markers for cat sightings, and `LocationPickerScreen` for selecting coordinates on a map when composing posts. |
+| **Media Uploads**  | Image selection (max 4 photos) uses `image_picker` and is compressed client-side via `flutter_image_compress` before uploading to Firebase Storage. |
 | **Data Models**    | `Cat`, `CatPost`, and `UserProfile` models with Firestore serialisation. |
 
 ### 3.2 What Is Placeholder / Not Yet Functional (Pending)
 
 | Area                     | Current State                                                            |
 |--------------------------|--------------------------------------------------------------------------|
-| **Map Integration**      | Campus map overlay is still a placeholder. Location tagging in posts is pending. |
-| **Media Uploads**        | Post image selection (max 4 photos) and Firebase Storage upload are pending. |
 | **Cat Database**         | Dedicated database screen, department filtering, and detail page are placeholders. |
-| **Moderation & Likes**   | Admin check capabilities and like/comment interactions are pending. |
+| **Moderation & Likes**   | Admin check capabilities, database management, and like/comment interactions are pending. |
 
 ---
 
@@ -387,42 +387,55 @@ storage-root/
 | `flutter_image_compress`| Client-side image resizing and compression      |
 | `cached_network_image`  | Cached image loading with placeholders          |
 
+### 10.1 Environment Setup (Local Keys)
+
+To configure Google Maps locally for development, the following configuration files must be created manually (these are ignored by Git for security):
+
+- **Android**: Add the API key to [local.properties](file:///d:/Uni/PPB/kucits/android/local.properties):
+  ```properties
+  GOOGLE_MAPS_API_KEY=<your_api_key>
+  ```
+- **iOS**: Create [Secret.xcconfig](file:///d:/Uni/PPB/kucits/ios/Flutter/Secret.xcconfig) under `ios/Flutter/` and add the API key:
+  ```config
+  GOOGLE_MAPS_API_KEY = <your_api_key>
+  ```
+
 *(Note: Google Sign-In is intentionally excluded to focus on core requirements, though it may be added later if time permits.)*
 
 ---
 
 ## 11. Development Roadmap
 
-### Phase 1: Core Data & Auth Update
-- Update Auth flow to include Username registration and validation.
-- Implement `UserService` for profile creation and reading.
-- Implement `CatService` for reading the Cat Database.
-- Setup `Provider` for state management.
+### Phase 1: Core Data & Auth Update `[Completed]`
+- `[x]` Update Auth flow to include Username registration and validation.
+- `[x]` Implement `UserService` for profile creation and reading.
+- `[x]` Implement `CatService` for reading the Cat Database.
+- `[x]` Setup `Provider` for state management.
 
-### Phase 2: Cat Database & Admin Tools
-- Build the Cat Database screen (list and filtering by department).
-- Implement Admin checks.
-- Build Admin UI to add, edit, and remove cats.
+### Phase 2: Cat Database & Admin Tools `[Pending]`
+- `[ ]` Build the Cat Database screen (list and filtering by department).
+- `[ ]` Implement Admin checks.
+- `[ ]` Build Admin UI to add, edit, and remove cats.
 
-### Phase 3: Post Creation & Storage
-- Integrate `image_picker` and `firebase_storage` for handling up to 4 images (10MB limit).
-- Integrate `google_maps_flutter` for location tagging in posts.
-- Wire `ComposeScreen` to write complete `CatPost` documents to Firestore.
+### Phase 3: Post Creation & Storage `[Completed]`
+- `[x]` Integrate `image_picker` and `firebase_storage` for handling up to 4 images.
+- `[x]` Integrate `google_maps_flutter` for location tagging in posts.
+- `[x]` Wire `ComposeScreen` to write complete `CatPost` documents to Firestore (including client-side image compression).
 
-### Phase 4: Forum, Timeline & Map Integration
-- Update Timeline to stream real posts from Firestore.
-- Add Interactive Map on top of the Forum and Database screens.
-- Implement Cat Detail screen showing sorted posts (popularity/latest).
+### Phase 4: Forum, Timeline & Map Integration `[In Progress / Mostly Completed]`
+- `[x]` Update Timeline to stream real posts from Firestore.
+- `[x]` Add Interactive Map tab showing all cat sighting pins.
+- `[ ]` Implement Cat Detail screen showing sorted posts (popularity/latest).
 
-### Phase 5: Interactions & Moderation
-- Implement Like and Comment functionality.
-- Implement post deletion for authors and Admins (Moderation).
-- Ensure anonymous users are restricted from interacting.
+### Phase 5: Interactions & Moderation `[Pending]`
+- `[ ]` Implement Like and Comment functionality.
+- `[ ]` Implement post deletion for authors and Admins (Moderation).
+- `[x]` Ensure anonymous users are restricted from interacting (redirects to Login).
 
-### Phase 6: Push Notifications & Crashlytics
-- Integrate Firebase Messaging for user notifications.
-- Setup Firebase Crashlytics to catch and report errors.
-- Final UI polish and bug fixing.
+### Phase 6: Push Notifications & Crashlytics `[Pending]`
+- `[ ]` Integrate Firebase Messaging for user notifications.
+- `[ ]` Setup Firebase Crashlytics to catch and report errors.
+- `[ ]` Final UI polish and bug fixing.
 
 ---
 
