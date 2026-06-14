@@ -74,48 +74,47 @@ class _TimelineScreenState extends State<TimelineScreen> {
         ],
       ),
       body: StreamBuilder<List<CatPost>>(
-        stream: postService.streamFeed(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Error loading feed: ${snapshot.error}',
-                style: TextStyle(color: colorScheme.error),
-              ),
-            );
-          }
-
-          final posts = snapshot.data ?? [];
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              // Wait short duration to simulate refresh. StreamBuilder will auto-fetch latest anyway.
-              await Future.delayed(const Duration(milliseconds: 500));
-            },
-            child: ListView.builder(
-              itemCount: posts.length + 2,
-              itemBuilder: (_, index) {
-                if (index == 0) {
-                  return ComposeBox(onTap: _openCompose);
+              stream: postService.streamFeed(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
                 }
-                if (index == 1) {
-                  return Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: colorScheme.outlineVariant,
+
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Text(
+                      'Error loading feed: ${snapshot.error}',
+                      style: TextStyle(color: colorScheme.error),
+                    ),
                   );
                 }
-                final post = posts[index - 2];
-                return PostCard(post: post);
+
+                final posts = snapshot.data ?? [];
+
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    await Future.delayed(const Duration(milliseconds: 500));
+                  },
+                  child: ListView.builder(
+                    itemCount: posts.length + 2,
+                    itemBuilder: (_, index) {
+                      if (index == 0) {
+                        return ComposeBox(onTap: _openCompose);
+                      }
+                      if (index == 1) {
+                        return Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: colorScheme.outlineVariant,
+                        );
+                      }
+                      final post = posts[index - 2];
+                      return PostCard(post: post);
+                    },
+                  ),
+                );
               },
             ),
-          );
-        },
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _openCompose,
         tooltip: 'New post',

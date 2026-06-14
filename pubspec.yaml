@@ -46,6 +46,7 @@ dependencies:
   path_provider: ^2.1.5
   google_fonts: ^6.2.0
   shared_preferences: ^2.5.5
+  google_maps_flutter: ^2.9.0
 
 dev_dependencies:
   flutter_test:

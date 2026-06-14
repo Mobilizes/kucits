@@ -7,6 +7,7 @@ import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/reset_password_screen.dart';
 
+import '../screens/map_screen.dart';
 import '../screens/profile_management_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/user_profile_screen.dart';
@@ -102,11 +103,9 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: '/database',
+            path: '/map',
             builder: (BuildContext context, GoRouterState state) {
-              return const Scaffold(
-                body: Center(child: Text('Cat Database Screen - Coming Soon')),
-              );
+              return const MapScreen();
             },
           ),
           GoRoute(

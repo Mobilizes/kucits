@@ -10,6 +10,7 @@ import '../services/cat_service.dart';
 import '../services/post_service.dart';
 import '../services/storage_service.dart';
 import '../services/user_service.dart';
+import 'location_picker_screen.dart';
 
 class ComposeScreen extends StatefulWidget {
   final CatPost? postToEdit;
@@ -175,20 +176,29 @@ class _ComposeScreenState extends State<ComposeScreen> {
     }
   }
 
-  void _toggleLocation() {
-    setState(() {
-      if (_location == null) {
-        _location = const GeoPoint(-7.279604, 112.797274);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tagged location: ITS Surabaya')),
-        );
-      } else {
-        _location = null;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Location tag removed')),
-        );
-      }
-    });
+  Future<void> _openLocationPicker() async {
+    final result = await Navigator.push<GeoPoint>(
+      context,
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => LocationPickerScreen(initialLocation: _location),
+      ),
+    );
+    if (result != null && mounted) {
+      setState(() => _location = result);
+    }
+  }
+
+  void _removeLocation() {
+    setState(() => _location = null);
+  }
+
+  String _formatLocation(GeoPoint loc) {
+    final lat = loc.latitude.abs().toStringAsFixed(4);
+    final lng = loc.longitude.abs().toStringAsFixed(4);
+    final latDir = loc.latitude >= 0 ? 'N' : 'S';
+    final lngDir = loc.longitude >= 0 ? 'E' : 'W';
+    return '$lat°$latDir $lng°$lngDir';
   }
 
   Future<void> _submit() async {
@@ -386,10 +396,16 @@ class _ComposeScreenState extends State<ComposeScreen> {
                 if (_location != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8.0),
-                    child: Chip(
-                      avatar: const Icon(Icons.location_on, size: 16),
-                      label: const Text('ITS Surabaya', style: TextStyle(fontSize: 12)),
-                      onDeleted: _isSubmitting ? null : _toggleLocation,
+                    child: GestureDetector(
+                      onTap: _isSubmitting ? null : _openLocationPicker,
+                      child: Chip(
+                        avatar: const Icon(Icons.location_on, size: 16),
+                        label: Text(
+                          _formatLocation(_location!),
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                        onDeleted: _isSubmitting ? null : _removeLocation,
+                      ),
                     ),
                   ),
 
@@ -520,7 +536,7 @@ class _ComposeScreenState extends State<ComposeScreen> {
                 _location == null ? Icons.location_on_outlined : Icons.location_on,
                 color: _location == null ? cs.onSurfaceVariant : cs.primary,
               ),
-              onPressed: _isSubmitting ? null : _toggleLocation,
+              onPressed: _isSubmitting ? null : _openLocationPicker,
               tooltip: 'Tag location',
             ),
             const Spacer(),
