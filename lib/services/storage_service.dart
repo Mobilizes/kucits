@@ -21,6 +21,21 @@ class StorageService {
     }
   }
 
+  Future<String?> uploadCatIcon(String catId, File file) async {
+    try {
+      // Compress the image before uploading
+      final compressedFile = await _compressImage(file);
+      if (compressedFile == null) return null;
+
+      final ref = _storage.ref().child('cat_icons/$catId.jpg');
+      final uploadTask = await ref.putFile(compressedFile);
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<File?> _compressImage(File file) async {
     try {
       final tempDir = await getTemporaryDirectory();

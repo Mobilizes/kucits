@@ -18,7 +18,8 @@ import 'app/router.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await CatService().seedCatsIfEmpty();
+  CatService().seedCatsIfEmpty();
+
   runApp(const KucITSApp());
 }
 

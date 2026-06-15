@@ -7,10 +7,12 @@ import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/reset_password_screen.dart';
 
-import '../screens/map_screen.dart';
 import '../screens/profile_management_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/user_profile_screen.dart';
+import '../screens/cat_database_screen.dart';
+import '../screens/cat_detail_screen.dart';
+import '../screens/admin_cat_form_screen.dart';
 import 'dart:async';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -88,6 +90,18 @@ class AppRouter {
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
       ),
+      GoRoute(
+        path: '/cats/add',
+        builder: (context, state) => const AdminCatFormScreen(),
+      ),
+      GoRoute(
+        path: '/cats/edit/:id',
+        builder: (context, state) => AdminCatFormScreen(catId: state.pathParameters['id']),
+      ),
+      GoRoute(
+        path: '/cats/:id',
+        builder: (context, state) => CatDetailScreen(catId: state.pathParameters['id']!),
+      ),
 
       // Bottom Nav routes
       ShellRoute(
@@ -103,9 +117,9 @@ class AppRouter {
             },
           ),
           GoRoute(
-            path: '/map',
+            path: '/database',
             builder: (BuildContext context, GoRouterState state) {
-              return const MapScreen();
+              return const CatDatabaseScreen();
             },
           ),
           GoRoute(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../models/cat.dart';
 import '../models/cat_post.dart';
 import '../services/post_service.dart';
@@ -46,16 +47,33 @@ class PostCard extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       child: Row(
         children: [
-          _buildAvatarStack(cats, cs),
+          GestureDetector(
+            onTap: () {
+              if (cats.isNotEmpty) {
+                context.push('/cats/${cats[0].id}');
+              }
+            },
+            child: _buildAvatarStack(cats, cs),
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _catNames(cats),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis,
+                GestureDetector(
+                  onTap: () {
+                    if (cats.isNotEmpty) {
+                      context.push('/cats/${cats[0].id}');
+                    }
+                  },
+                  child: Text(
+                    _catNames(cats),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: cats.isNotEmpty ? cs.primary : null,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 Text(
                   'by ${post.authorUsername}',

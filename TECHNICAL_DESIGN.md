@@ -82,15 +82,19 @@ Based on the course specifications, the app should fulfill the following:
 | **User Profile**   | Tab 3 displaying user initials, bio, post count chip, and a 3-column photo grid of the user's posts. |
 | **Settings Screen**| Dedicated settings screen (`/settings`) for dark mode toggling and account sign-out with confirmation. |
 | **Map Integration**| Fully functional Map tab (`/map`) displaying markers for cat sightings, and `LocationPickerScreen` for selecting coordinates on a map when composing posts. |
-| **Media Uploads**  | Image selection (max 4 photos) uses `image_picker` and is compressed client-side via `flutter_image_compress` before uploading to Firebase Storage. |
-| **Data Models**    | `Cat`, `CatPost`, and `UserProfile` models with Firestore serialisation. |
+| **Media & Cropping**| Image selection uses `image_picker`, custom cropping uses `image_cropper` (1:1 square for cat profiles, free aspect ratio loop for sightings posts), and compression uses `flutter_image_compress` prior to Firebase Storage uploads. |
+| **Cat Database**   | Fully integrated database screen, collapsible map overlay, faculty/department cascading dropdown filters, sterilization choice chips, and grid view. |
+| **Moderation & Likes**| Admin check gates (`isAdmin` profile checks), admin-only FAB/edit/delete buttons, unified add/edit cat form, orphan post safeguards, and transaction-based like/comment mechanisms. |
+| **Data Models**    | `Cat`, `CatPost`, `UserProfile`, and `Comment` models with Firestore serialisation. |
+
+> [!IMPORTANT]
+> **Backend Configuration Requirement**: While all client-side logic for Firebase Storage and Firestore is complete and verified, the Firebase project owner must manually:
+> 1. Enable/activate **Firebase Storage** in the Firebase Console (requires upgrading the project to the Blaze Pay-as-you-go plan, which remains $0/month for testing under free tier limits).
+> 2. Create the required composite indexes for Firestore (a query error link will print in the VS Code debug console upon visiting a cat details page for the first time).
 
 ### 3.2 What Is Placeholder / Not Yet Functional (Pending)
 
-| Area                     | Current State                                                            |
-|--------------------------|--------------------------------------------------------------------------|
-| **Cat Database**         | Dedicated database screen, department filtering, and detail page are placeholders. |
-| **Moderation & Likes**   | Admin check capabilities, database management, and like/comment interactions are pending. |
+None. All Phase 2-5 features are fully functional and integrated.
 
 ---
 
@@ -412,24 +416,26 @@ To configure Google Maps locally for development, the following configuration fi
 - `[x]` Implement `CatService` for reading the Cat Database.
 - `[x]` Setup `Provider` for state management.
 
-### Phase 2: Cat Database & Admin Tools `[Pending]`
-- `[ ]` Build the Cat Database screen (list and filtering by department).
-- `[ ]` Implement Admin checks.
-- `[ ]` Build Admin UI to add, edit, and remove cats.
+### Phase 2: Cat Database & Admin Tools `[Completed]`
+- `[x]` Build the Cat Database screen (list and filtering by department/faculty/sterilization status).
+- `[x]` Implement Admin checks (`isAdmin == true` security gates and dynamic buttons).
+- `[x]` Build Admin UI to add, edit, and remove cats.
+- `[x]` Integrate `image_cropper` for 1:1 square cropping on cat profile photos.
 
 ### Phase 3: Post Creation & Storage `[Completed]`
 - `[x]` Integrate `image_picker` and `firebase_storage` for handling up to 4 images.
+- `[x]` Integrate `image_cropper` for multi-image free aspect ratio cropping on sighting posts.
 - `[x]` Integrate `google_maps_flutter` for location tagging in posts.
 - `[x]` Wire `ComposeScreen` to write complete `CatPost` documents to Firestore (including client-side image compression).
 
-### Phase 4: Forum, Timeline & Map Integration `[In Progress / Mostly Completed]`
+### Phase 4: Forum, Timeline & Map Integration `[Completed]`
 - `[x]` Update Timeline to stream real posts from Firestore.
-- `[x]` Add Interactive Map tab showing all cat sighting pins.
-- `[ ]` Implement Cat Detail screen showing sorted posts (popularity/latest).
+- `[x]` Add Interactive Map (integrated directly as a collapsible `MapViewOverlay` on the Cat Database screen).
+- `[x]` Implement Cat Detail screen showing sorted posts (Latest vs. Popularity).
 
-### Phase 5: Interactions & Moderation `[Pending]`
-- `[ ]` Implement Like and Comment functionality.
-- `[ ]` Implement post deletion for authors and Admins (Moderation).
+### Phase 5: Interactions & Moderation `[Completed]`
+- `[x]` Implement Like and Comment functionality.
+- `[x]` Implement post deletion for authors and Admins (Moderation).
 - `[x]` Ensure anonymous users are restricted from interacting (redirects to Login).
 
 ### Phase 6: Push Notifications & Crashlytics `[Pending]`

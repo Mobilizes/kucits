@@ -37,7 +37,16 @@ class CatService {
   // Admin only functions below
   Future<bool> addCat(Cat cat) async {
     try {
-      await _db.collection('cats').add(cat.toMap());
+      await _db.collection('cats').doc(cat.id).set(cat.toMap());
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> deleteCat(String catId) async {
+    try {
+      await _db.collection('cats').doc(catId).delete();
       return true;
     } catch (e) {
       return false;

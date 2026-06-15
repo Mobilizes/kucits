@@ -18,6 +18,12 @@ class AuthService {
     String password,
   ) async {
     try {
+      final currentUser = _auth.currentUser;
+      if (currentUser != null && currentUser.isAnonymous) {
+        try {
+          await currentUser.delete();
+        } catch (_) {}
+      }
       UserCredential result = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
@@ -49,6 +55,14 @@ class AuthService {
       final isAvailable = await userService.isUsernameAvailable(username);
       if (!isAvailable) {
         throw Exception('Username is already taken or database access denied.');
+      }
+
+      // Check and clean up current anonymous user before creating the new account
+      final currentUser = _auth.currentUser;
+      if (currentUser != null && currentUser.isAnonymous) {
+        try {
+          await currentUser.delete();
+        } catch (_) {}
       }
 
       // 2. Create Auth User
@@ -86,9 +100,16 @@ class AuthService {
 
   Future<void> signOut() async {
     try {
-      await _auth.signOut();
+      final user = _auth.currentUser;
+      if (user != null && user.isAnonymous) {
+        await user.delete();
+      } else {
+        await _auth.signOut();
+      }
     } catch (_) {
-      // Ignore
+      try {
+        await _auth.signOut();
+      } catch (_) {}
     }
   }
 }

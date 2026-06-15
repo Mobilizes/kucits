@@ -20,9 +20,9 @@ class HomeShell extends StatelessWidget {
             label: 'Forum',
           ),
           NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map),
-            label: 'Map',
+            icon: Icon(Icons.pets_outlined),
+            selectedIcon: Icon(Icons.pets),
+            label: 'Cats',
           ),
           NavigationDestination(
             icon: Icon(Icons.person_outline),
@@ -36,7 +36,7 @@ class HomeShell extends StatelessWidget {
 
   static int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).uri.path;
-    if (location.startsWith('/map')) {
+    if (location.startsWith('/database')) {
       return 1;
     }
     if (location.startsWith('/profile')) {
@@ -51,7 +51,7 @@ class HomeShell extends StatelessWidget {
         context.go('/');
         break;
       case 1:
-        context.go('/map');
+        context.go('/database');
         break;
       case 2:
         context.go('/profile');

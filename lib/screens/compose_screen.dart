@@ -11,6 +11,7 @@ import '../services/post_service.dart';
 import '../services/storage_service.dart';
 import '../services/user_service.dart';
 import 'location_picker_screen.dart';
+import 'package:image_cropper/image_cropper.dart';
 
 class ComposeScreen extends StatefulWidget {
   final CatPost? postToEdit;
@@ -158,15 +159,42 @@ class _ComposeScreenState extends State<ComposeScreen> {
       );
       return;
     }
+    final colorScheme = Theme.of(context).colorScheme;
     try {
       final List<XFile> images = await _picker.pickMultiImage();
       if (images.isNotEmpty) {
-        setState(() {
-          final remaining = 4 - currentCount;
-          _selectedImageFiles.addAll(
-            images.take(remaining).map((x) => File(x.path)),
+        final remaining = 4 - currentCount;
+        final selectedImages = images.take(remaining);
+        final List<File> croppedFiles = [];
+
+        for (final xImage in selectedImages) {
+          final cropped = await ImageCropper().cropImage(
+            sourcePath: xImage.path,
+            uiSettings: [
+              AndroidUiSettings(
+                toolbarTitle: 'Crop Sighting Photo',
+                toolbarColor: colorScheme.surfaceContainerLow,
+                toolbarWidgetColor: colorScheme.onSurface,
+                initAspectRatio: CropAspectRatioPreset.original,
+                lockAspectRatio: false,
+              ),
+              IOSUiSettings(
+                title: 'Crop Sighting Photo',
+              ),
+            ],
           );
-        });
+          if (cropped != null) {
+            croppedFiles.add(File(cropped.path));
+          } else {
+            croppedFiles.add(File(xImage.path)); // Fallback to original
+          }
+        }
+
+        if (croppedFiles.isNotEmpty && mounted) {
+          setState(() {
+            _selectedImageFiles.addAll(croppedFiles);
+          });
+        }
       }
     } catch (e) {
       if (!mounted) return;
