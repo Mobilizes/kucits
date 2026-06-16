@@ -85,16 +85,19 @@ Based on the course specifications, the app should fulfill the following:
 | **Media & Cropping**| Image selection uses `image_picker`, custom cropping uses `image_cropper` (1:1 square for cat profiles, free aspect ratio loop for sightings posts), and compression uses `flutter_image_compress` prior to Firebase Storage uploads. |
 | **Cat Database**   | Fully integrated database screen, collapsible map overlay, faculty/department cascading dropdown filters, sterilization choice chips, and grid view. |
 | **Moderation & Likes**| Admin check gates (`isAdmin` profile checks), admin-only FAB/edit/delete buttons, unified add/edit cat form, orphan post safeguards, and transaction-based like/comment mechanisms. |
+| **Push Notifications** | Firebase Messaging integrated: permission request, FCM token saved to Firestore user doc on login, foreground in-app banners via `ScaffoldMessengerKey`, background/terminated tap handler. |
+| **Crashlytics**    | Firebase Crashlytics integrated: Flutter framework errors forwarded via `FlutterError.onError`, async/platform errors via `PlatformDispatcher.instance.onError`, Crashlytics Gradle plugin enabled. |
 | **Data Models**    | `Cat`, `CatPost`, `UserProfile`, and `Comment` models with Firestore serialisation. |
 
 > [!IMPORTANT]
 > **Backend Configuration Requirement**: While all client-side logic for Firebase Storage and Firestore is complete and verified, the Firebase project owner must manually:
 > 1. Enable/activate **Firebase Storage** in the Firebase Console (requires upgrading the project to the Blaze Pay-as-you-go plan, which remains $0/month for testing under free tier limits).
 > 2. Create the required composite indexes for Firestore (a query error link will print in the VS Code debug console upon visiting a cat details page for the first time).
+> 3. To send push notifications to users (e.g., on comment/like), use the Firebase Console → Cloud Messaging → Send test message, targeting the FCM token stored in each user's Firestore doc (`users/{uid}/fcmToken`). Automated server-side triggers would require Firebase Cloud Functions (not required for this course).
 
 ### 3.2 What Is Placeholder / Not Yet Functional (Pending)
 
-None. All Phase 2-5 features are fully functional and integrated.
+None. All Phase 2-6 features are fully functional and integrated.
 
 ---
 
@@ -438,10 +441,10 @@ To configure Google Maps locally for development, the following configuration fi
 - `[x]` Implement post deletion for authors and Admins (Moderation).
 - `[x]` Ensure anonymous users are restricted from interacting (redirects to Login).
 
-### Phase 6: Push Notifications & Crashlytics `[Pending]`
-- `[ ]` Integrate Firebase Messaging for user notifications.
-- `[ ]` Setup Firebase Crashlytics to catch and report errors.
-- `[ ]` Final UI polish and bug fixing.
+### Phase 6: Push Notifications & Crashlytics `[Completed]`
+- `[x]` Integrate Firebase Messaging for user notifications.
+- `[x]` Setup Firebase Crashlytics to catch and report errors.
+- `[x]` Final UI polish and bug fixing.
 
 ---
 
