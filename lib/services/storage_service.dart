@@ -1,36 +1,40 @@
+import 'dart:convert';
 import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
+import '../config/env.dart';
+
 class StorageService {
-  FirebaseStorage get _storage => FirebaseStorage.instance;
+  static const String _apiKey = Env.imgbbApiKey;
 
   Future<String?> uploadPostPhoto(String postId, File file, int index) async {
-    try {
-      // Compress the image before uploading
-      final compressedFile = await _compressImage(file);
-      if (compressedFile == null) return null;
-
-      final ref = _storage.ref().child('posts/$postId/$index.jpg');
-      final uploadTask = await ref.putFile(compressedFile);
-      final downloadUrl = await uploadTask.ref.getDownloadURL();
-      return downloadUrl;
-    } catch (e) {
-      return null;
-    }
+    return _uploadToImgBB(file);
   }
 
   Future<String?> uploadCatIcon(String catId, File file) async {
+    return _uploadToImgBB(file);
+  }
+
+  Future<String?> _uploadToImgBB(File file) async {
     try {
       // Compress the image before uploading
       final compressedFile = await _compressImage(file);
       if (compressedFile == null) return null;
 
-      final ref = _storage.ref().child('cat_icons/$catId.jpg');
-      final uploadTask = await ref.putFile(compressedFile);
-      final downloadUrl = await uploadTask.ref.getDownloadURL();
-      return downloadUrl;
+      final uri = Uri.parse('https://api.imgbb.com/1/upload?key=$_apiKey');
+      final request = http.MultipartRequest('POST', uri)
+        ..files.add(await http.MultipartFile.fromPath('image', compressedFile.path));
+
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        final responseData = await response.stream.bytesToString();
+        final jsonDecoded = json.decode(responseData);
+        final String? url = jsonDecoded['data']['url'];
+        return url;
+      }
+      return null;
     } catch (e) {
       return null;
     }
