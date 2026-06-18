@@ -6,16 +6,18 @@ class CatService {
 
   Stream<List<Cat>> streamCats({String? department}) {
     try {
-      Query query = _db.collection('cats');
-      
-      if (department != null && department.isNotEmpty) {
-        query = query.where('department', isEqualTo: department);
-      }
-      
-      query = query.orderBy('name');
-
-      return query.snapshots().map((snapshot) {
-        return snapshot.docs.map((doc) => Cat.fromSnapshot(doc as DocumentSnapshot<Map<String, dynamic>>)).toList();
+      return _db
+          .collection('cats')
+          .orderBy('name')
+          .snapshots()
+          .map((snapshot) {
+        final cats = snapshot.docs
+            .map((doc) => Cat.fromSnapshot(doc as DocumentSnapshot<Map<String, dynamic>>))
+            .toList();
+        if (department != null && department.isNotEmpty) {
+          return cats.where((c) => c.department == department).toList();
+        }
+        return cats;
       });
     } catch (_) {
       return const Stream.empty();

@@ -112,17 +112,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       child: Column(
                         children: [
-                          Container(
-                            width: 76,
-                            height: 76,
-                            decoration: BoxDecoration(
-                              color: colorScheme.secondaryContainer,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.pets,
-                              size: 40,
-                              color: colorScheme.onSecondaryContainer,
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.asset(
+                              'assets/KucITS-icon.png',
+                              width: 76,
+                              height: 76,
+                              fit: BoxFit.cover,
                             ),
                           ),
                           const SizedBox(height: 16),

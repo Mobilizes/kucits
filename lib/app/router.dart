@@ -13,6 +13,7 @@ import '../screens/user_profile_screen.dart';
 import '../screens/cat_database_screen.dart';
 import '../screens/cat_detail_screen.dart';
 import '../screens/admin_cat_form_screen.dart';
+import '../screens/notifications_screen.dart';
 import 'dart:async';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -89,6 +90,10 @@ class AppRouter {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsScreen(),
       ),
       GoRoute(
         path: '/cats/add',

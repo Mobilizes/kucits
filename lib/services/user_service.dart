@@ -102,4 +102,13 @@ class UserService {
       return false;
     }
   }
+
+  Future<bool> updateProfilePictureUrl(String uid, String url) async {
+    try {
+      await _db.collection('users').doc(uid).update({'profilePictureUrl': url});
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }

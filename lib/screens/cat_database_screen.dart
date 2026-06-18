@@ -23,14 +23,64 @@ class _CatDatabaseScreenState extends State<CatDatabaseScreen> {
   bool _loadingAdminCheck = true;
 
   final Map<String, List<String>> _faculties = {
-    'FSAD (Sains & Analitika Data)': ['Fisika', 'Kimia', 'Matematika', 'Biologi', 'Statistika', 'Aktuaria'],
-    'FTIRS (Teknologi Industri)': ['Teknik Mesin', 'Teknik Kimia', 'Teknik Fisika', 'Rekayasa Keselamatan Proses', 'Teknik Industri', 'Teknik Material dan Metalurgi', 'Teknik Pangan'],
-    'FTK (Teknologi Kelautan)': ['Teknik Perkapalan', 'Teknik Sistem Perkapalan', 'Teknik Kelautan', 'Teknik Transportasi Laut', 'Teknik Lepas Pantai'],
-    'FTSPK (Sipil, Perencanaan & Kebumian)': ['Teknik Sipil', 'Arsitektur', 'Teknik Lingkungan', 'Teknik Geomatika', 'Perencanaan Wilayah Kota', 'Teknik Geofisika', 'Teknik Pertambangan'],
-    'FTEIC (Elektro & Informatika)': ['Teknik Elektro', 'Teknik Informatika', 'Sistem Informasi', 'Teknik Komputer', 'Teknik Biomedik', 'Teknologi Informasi', 'Teknik Telekomunikasi'],
-    'FDKBD (Desain Kreatif & Bisnis)': ['Desain Produk', 'Desain Interior', 'Desain Komunikasi Visual', 'Manajemen Bisnis', 'Studi Pembangunan'],
-    'FV (Vokasi)': ['Teknik Infrastruktur Sipil', 'Teknik Mesin Industri', 'Teknik Elektro Otomasi', 'Teknik Kimia Industri', 'Teknik Instrumentasi', 'Statistika Bisnis'],
-    'FKK (Kedokteran & Kesehatan)': ['Teknologi Kedokteran', 'Kedokteran'],
+    'FSAD': [
+      'Fisika',
+      'Kimia',
+      'Matematika',
+      'Biologi',
+      'Statistika',
+      'Aktuaria',
+    ],
+    'FTIRS': [
+      'Teknik Mesin',
+      'Teknik Kimia',
+      'Teknik Fisika',
+      'Rekayasa Keselamatan Proses',
+      'Teknik Industri',
+      'Teknik Material dan Metalurgi',
+      'Teknik Pangan',
+    ],
+    'FTK': [
+      'Teknik Perkapalan',
+      'Teknik Sistem Perkapalan',
+      'Teknik Kelautan',
+      'Teknik Transportasi Laut',
+      'Teknik Lepas Pantai',
+    ],
+    'FTSPK': [
+      'Teknik Sipil',
+      'Arsitektur',
+      'Teknik Lingkungan',
+      'Teknik Geomatika',
+      'Perencanaan Wilayah Kota',
+      'Teknik Geofisika',
+      'Teknik Pertambangan',
+    ],
+    'FTEIC': [
+      'Teknik Elektro',
+      'Teknik Informatika',
+      'Sistem Informasi',
+      'Teknik Komputer',
+      'Teknik Biomedik',
+      'Teknologi Informasi',
+      'Teknik Telekomunikasi',
+    ],
+    'FDKBD': [
+      'Desain Produk',
+      'Desain Interior',
+      'Desain Komunikasi Visual',
+      'Manajemen Bisnis',
+      'Studi Pembangunan',
+    ],
+    'FV': [
+      'Teknik Infrastruktur Sipil',
+      'Teknik Mesin Industri',
+      'Teknik Elektro Otomasi',
+      'Teknik Kimia Industri',
+      'Teknik Instrumentasi',
+      'Statistika Bisnis',
+    ],
+    'FKK': ['Teknologi Kedokteran', 'Kedokteran'],
   };
 
   @override
@@ -90,10 +140,10 @@ class _CatDatabaseScreenState extends State<CatDatabaseScreen> {
         children: [
           // Collapsible Map View Overlay
           const MapViewOverlay(),
-          
+
           // Filters UI
           _buildFilterPanel(colorScheme),
-          
+
           // Grid List of Cats
           Expanded(
             child: StreamBuilder<List<Cat>>(
@@ -117,12 +167,16 @@ class _CatDatabaseScreenState extends State<CatDatabaseScreen> {
                 // Perform client-side Faculty filtering if Faculty is selected but Department is not
                 if (_selectedFaculty != null && _selectedDepartment == null) {
                   final facultyDeps = _faculties[_selectedFaculty] ?? [];
-                  cats = cats.where((cat) => facultyDeps.contains(cat.department)).toList();
+                  cats = cats
+                      .where((cat) => facultyDeps.contains(cat.department))
+                      .toList();
                 }
 
                 // Perform client-side Neutered status filtering
                 if (_neuteredFilter != null) {
-                  cats = cats.where((cat) => cat.isNeutered == _neuteredFilter).toList();
+                  cats = cats
+                      .where((cat) => cat.isNeutered == _neuteredFilter)
+                      .toList();
                 }
 
                 if (cats.isEmpty) {
@@ -133,7 +187,9 @@ class _CatDatabaseScreenState extends State<CatDatabaseScreen> {
                         Icon(
                           Icons.pets,
                           size: 48,
-                          color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                          color: colorScheme.onSurfaceVariant.withValues(
+                            alpha: 0.5,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Text(
@@ -200,11 +256,17 @@ class _CatDatabaseScreenState extends State<CatDatabaseScreen> {
                     child: DropdownButton<String>(
                       isExpanded: true,
                       value: _selectedFaculty,
-                      hint: const Text('All Faculties', style: TextStyle(fontSize: 12)),
+                      hint: const Text(
+                        'All Faculties',
+                        style: TextStyle(fontSize: 12),
+                      ),
                       items: [
                         const DropdownMenuItem<String>(
                           value: null,
-                          child: Text('All Faculties', style: TextStyle(fontSize: 12)),
+                          child: Text(
+                            'All Faculties',
+                            style: TextStyle(fontSize: 12),
+                          ),
                         ),
                         ..._faculties.keys.map((faculty) {
                           return DropdownMenuItem<String>(
@@ -228,7 +290,7 @@ class _CatDatabaseScreenState extends State<CatDatabaseScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              
+
               // Department Filter (dependent on selected Faculty)
               Expanded(
                 child: Container(
@@ -242,14 +304,23 @@ class _CatDatabaseScreenState extends State<CatDatabaseScreen> {
                     child: DropdownButton<String>(
                       isExpanded: true,
                       value: _selectedDepartment,
-                      hint: const Text('All Depts', style: TextStyle(fontSize: 12)),
-                      disabledHint: const Text('Select Faculty first', style: TextStyle(fontSize: 11)),
+                      hint: const Text(
+                        'All Depts',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      disabledHint: const Text(
+                        'Select Faculty first',
+                        style: TextStyle(fontSize: 11),
+                      ),
                       items: _selectedFaculty == null
                           ? null
                           : [
                               const DropdownMenuItem<String>(
                                 value: null,
-                                child: Text('All Depts', style: TextStyle(fontSize: 12)),
+                                child: Text(
+                                  'All Depts',
+                                  style: TextStyle(fontSize: 12),
+                                ),
                               ),
                               ..._departments.map((dept) {
                                 return DropdownMenuItem<String>(
@@ -276,14 +347,18 @@ class _CatDatabaseScreenState extends State<CatDatabaseScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          
+
           // Neutered Filter chips
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Text(
                 'Neutered Status: ',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: cs.onSurfaceVariant),
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                  color: cs.onSurfaceVariant,
+                ),
               ),
               const SizedBox(width: 8),
               ChoiceChip(
@@ -336,10 +411,7 @@ class _CatDatabaseScreenState extends State<CatDatabaseScreen> {
               child: Container(
                 color: cs.surfaceContainerHighest,
                 child: hasImage
-                    ? Image.network(
-                        cat.iconUrl,
-                        fit: BoxFit.cover,
-                      )
+                    ? Image.network(cat.iconUrl, fit: BoxFit.cover)
                     : Center(
                         child: Text(
                           cat.name.isNotEmpty ? cat.name[0].toUpperCase() : 'C',
@@ -352,7 +424,7 @@ class _CatDatabaseScreenState extends State<CatDatabaseScreen> {
                       ),
               ),
             ),
-            
+
             // Cat Info Info Row
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -375,7 +447,10 @@ class _CatDatabaseScreenState extends State<CatDatabaseScreen> {
                       if (cat.isNeutered) ...[
                         const SizedBox(width: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1.5,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.teal.shade100,
                             borderRadius: BorderRadius.circular(6),
@@ -395,10 +470,7 @@ class _CatDatabaseScreenState extends State<CatDatabaseScreen> {
                   const SizedBox(height: 2),
                   Text(
                     cat.department,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: cs.onSurfaceVariant,
-                    ),
+                    style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

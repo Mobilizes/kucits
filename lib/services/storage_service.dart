@@ -17,6 +17,10 @@ class StorageService {
     return _uploadToImgBB(file);
   }
 
+  Future<String?> uploadProfilePicture(String userId, File file) async {
+    return _uploadToImgBB(file);
+  }
+
   Future<String?> _uploadToImgBB(File file) async {
     try {
       // Compress the image before uploading

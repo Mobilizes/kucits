@@ -85,11 +85,24 @@ class _ComposeScreenState extends State<ComposeScreen> {
 
   void _showCatPicker() {
     if (_isLoadingCats) return;
+    String searchQuery = '';
+    String? selectedDept;
+
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) {
           final cs = Theme.of(context).colorScheme;
+          final uniqueDepts = _allCats.map((c) => c.department).toSet().toList();
+          uniqueDepts.sort();
+
+          final filteredCats = _allCats.where((cat) {
+            final matchesSearch = cat.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
+                cat.department.toLowerCase().contains(searchQuery.toLowerCase());
+            final matchesDept = selectedDept == null || cat.department == selectedDept;
+            return matchesSearch && matchesDept;
+          }).toList();
+
           return AlertDialog(
             title: const Row(
               children: [
@@ -100,44 +113,105 @@ class _ComposeScreenState extends State<ComposeScreen> {
             ),
             content: SizedBox(
               width: double.maxFinite,
-              child: _allCats.isEmpty
-                  ? const Center(child: Text('No cats found in database.'))
-                  : ListView(
-                      shrinkWrap: true,
-                      children: _allCats.map((cat) {
-                        final checked = _selectedCats.any((c) => c.id == cat.id);
-                        return CheckboxListTile(
-                          value: checked,
-                          contentPadding: EdgeInsets.zero,
-                          title: Text(cat.name,
-                              style: const TextStyle(fontWeight: FontWeight.w600)),
-                          subtitle: Text(cat.department),
-                          secondary: CircleAvatar(
-                            backgroundColor: cs.primaryContainer,
-                            child: Text(cat.name[0],
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: cs.onPrimaryContainer)),
-                          ),
-                          onChanged: (_) {
-                            setState(() {
-                              if (checked) {
-                                _selectedCats.removeWhere((c) => c.id == cat.id);
-                              } else {
-                                if (_selectedCats.length >= 10) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Max 10 tagged cats per post')),
-                                  );
-                                  return;
-                                }
-                                _selectedCats.add(cat);
-                              }
-                            });
-                            setDialogState(() {});
-                          },
-                        );
-                      }).toList(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Search by name...',
+                      prefixIcon: const Icon(Icons.search),
+                      isDense: true,
+                      border: const OutlineInputBorder(),
+                      suffixIcon: searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                setDialogState(() {
+                                  searchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
                     ),
+                    onChanged: (val) {
+                      setDialogState(() {
+                        searchQuery = val;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: selectedDept,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Department Filter',
+                      isDense: true,
+                      border: OutlineInputBorder(),
+                    ),
+                    items: [
+                      const DropdownMenuItem<String>(
+                        value: null,
+                        child: Text('All Departments'),
+                      ),
+                      ...uniqueDepts.map((dept) => DropdownMenuItem<String>(
+                            value: dept,
+                            child: Text(dept),
+                          )),
+                    ],
+                    onChanged: (val) {
+                      setDialogState(() {
+                        selectedDept = val;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Flexible(
+                    child: filteredCats.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.all(24.0),
+                            child: Center(child: Text('No cats match your filters.')),
+                          )
+                        : ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: filteredCats.length,
+                            itemBuilder: (ctx, index) {
+                              final cat = filteredCats[index];
+                              final checked = _selectedCats.any((c) => c.id == cat.id);
+                              return CheckboxListTile(
+                                value: checked,
+                                contentPadding: EdgeInsets.zero,
+                                title: Text(cat.name,
+                                    style: const TextStyle(fontWeight: FontWeight.w600)),
+                                subtitle: Text(cat.department),
+                                secondary: CircleAvatar(
+                                  backgroundColor: cs.primaryContainer,
+                                  child: Text(cat.name[0],
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: cs.onPrimaryContainer)),
+                                ),
+                                onChanged: (_) {
+                                  setState(() {
+                                    if (checked) {
+                                      _selectedCats.removeWhere((c) => c.id == cat.id);
+                                    } else {
+                                      if (_selectedCats.length >= 10) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Max 10 tagged cats per post')),
+                                        );
+                                        return;
+                                      }
+                                      _selectedCats.add(cat);
+                                    }
+                                  });
+                                  setDialogState(() {});
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(
@@ -238,6 +312,17 @@ class _ComposeScreenState extends State<ComposeScreen> {
       return;
     }
 
+    final hasImages = _selectedImageFiles.isNotEmpty || _photoUrls.isNotEmpty;
+    final hasLocation = _location != null;
+    if (!hasImages && !hasLocation) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('A post must include at least an image or a location tag.'),
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isSubmitting = true;
     });
@@ -305,9 +390,9 @@ class _ComposeScreenState extends State<ComposeScreen> {
   }
 
   String get _hintText {
-    if (_selectedCats.isEmpty) return 'Tag some cats, then write your update…';
+    if (_selectedCats.isEmpty) return 'Tag some cats, then share your encounter…';
     final names = _selectedCats.map((c) => c.name).join(' and ');
-    return 'What ${_selectedCats.length == 1 ? 'is $names' : 'are $names'} up to?';
+    return 'Describe your encounter with $names…';
   }
 
   @override
@@ -377,7 +462,7 @@ class _ComposeScreenState extends State<ComposeScreen> {
           CircleAvatar(
             radius: 22,
             backgroundColor: cs.primaryContainer,
-            child: Icon(Icons.person, color: cs.onPrimaryContainer),
+            child: Icon(Icons.pets, color: cs.onPrimaryContainer),
           ),
           const SizedBox(width: 12),
           Expanded(

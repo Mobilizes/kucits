@@ -1,7 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
 import '../models/user_profile.dart';
 import '../services/user_service.dart';
+import '../services/storage_service.dart';
 
 class ProfileManagementScreen extends StatefulWidget {
   const ProfileManagementScreen({super.key});
@@ -20,6 +24,45 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
   bool _saving = false;
   UserProfile? _userProfile;
   String _initialUsername = '';
+  File? _selectedProfileImage;
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickAndCropImage() async {
+    try {
+      final colorScheme = Theme.of(context).colorScheme;
+      final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile == null) return;
+
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: pickedFile.path,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Profile Picture',
+            toolbarColor: colorScheme.surfaceContainerLow,
+            toolbarWidgetColor: colorScheme.onSurface,
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: true,
+          ),
+          IOSUiSettings(
+            title: 'Crop Profile Picture',
+            aspectRatioLockEnabled: true,
+          ),
+        ],
+      );
+
+      if (croppedFile != null) {
+        setState(() {
+          _selectedProfileImage = File(croppedFile.path);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error picking image: $e')),
+        );
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -78,6 +121,20 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null && _userProfile != null) {
       final userService = UserService();
+
+      if (_selectedProfileImage != null) {
+        final storageService = StorageService();
+        final imageUrl = await storageService.uploadProfilePicture(user.uid, _selectedProfileImage!);
+        if (imageUrl != null) {
+          await userService.updateProfilePictureUrl(user.uid, imageUrl);
+        } else {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Failed to upload profile picture.')),
+            );
+          }
+        }
+      }
 
       // Update Bio
       await userService.updateBio(user.uid, _bioController.text.trim());
@@ -170,17 +227,49 @@ class _ProfileManagementScreenState extends State<ProfileManagementScreen> {
                       ),
                       child: Row(
                         children: [
-                          CircleAvatar(
-                            radius: 34,
-                            backgroundColor: colorScheme.surface,
-                            child: Text(
-                              _initials(_usernameController.text),
-                              style: TextStyle(
-                                color: colorScheme.primary,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 18,
+                          Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 38,
+                                backgroundColor: colorScheme.surface,
+                                backgroundImage: _selectedProfileImage != null
+                                    ? FileImage(_selectedProfileImage!)
+                                    : (_userProfile?.profilePictureUrl.isNotEmpty == true
+                                        ? NetworkImage(_userProfile!.profilePictureUrl)
+                                        : null) as ImageProvider?,
+                                child: (_selectedProfileImage != null ||
+                                        _userProfile?.profilePictureUrl.isNotEmpty == true)
+                                    ? null
+                                    : Text(
+                                        _initials(_usernameController.text),
+                                        style: TextStyle(
+                                          color: colorScheme.primary,
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 20,
+                                        ),
+                                      ),
                               ),
-                            ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: GestureDetector(
+                                  onTap: _pickAndCropImage,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: colorScheme.primary,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: colorScheme.surface, width: 2),
+                                    ),
+                                    child: Icon(
+                                      Icons.camera_alt,
+                                      size: 14,
+                                      color: colorScheme.onPrimary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           const SizedBox(width: 16),
                           Expanded(

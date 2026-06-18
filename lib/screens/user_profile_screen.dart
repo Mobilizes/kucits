@@ -9,7 +9,8 @@ import '../services/post_service.dart';
 import 'post_detail_screen.dart';
 
 class UserProfileScreen extends StatefulWidget {
-  const UserProfileScreen({super.key});
+  final String? userId;
+  const UserProfileScreen({super.key, this.userId});
 
   @override
   State<UserProfileScreen> createState() => _UserProfileScreenState();
@@ -26,10 +27,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   }
 
   Future<void> _loadProfile() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null && !user.isAnonymous) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final targetUid = widget.userId ?? currentUser?.uid;
+    if (targetUid != null) {
       final userService = Provider.of<UserService>(context, listen: false);
-      final profile = await userService.getUserProfile(user.uid);
+      final profile = await userService.getUserProfile(targetUid);
       if (mounted) {
         setState(() {
           _profile = profile;
@@ -58,13 +60,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     if (currentUser == null) {
-      return const Scaffold(
-        body: Center(child: Text('Please log in.')),
-      );
+      return const Scaffold(body: Center(child: Text('Please log in.')));
     }
 
+    final isMe = widget.userId == null || widget.userId == currentUser.uid;
+
     // Guest Profile view
-    if (currentUser.isAnonymous) {
+    if (currentUser.isAnonymous && isMe) {
       final colorScheme = Theme.of(context).colorScheme;
       return Scaffold(
         appBar: AppBar(title: const Text('Profile')),
@@ -82,9 +84,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 const SizedBox(height: 16),
                 Text(
                   'Join the community',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -106,9 +108,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
 
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final cs = Theme.of(context).colorScheme;
@@ -116,21 +116,27 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final bio = _profile?.bio ?? 'No bio yet.';
     final postService = Provider.of<PostService>(context, listen: false);
 
+    final targetUid = widget.userId ?? currentUser.uid;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(username, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          username,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {
-              context.push('/settings');
-            },
-            tooltip: 'Settings',
-          ),
+          if (isMe)
+            IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              onPressed: () {
+                context.push('/settings');
+              },
+              tooltip: 'Settings',
+            ),
         ],
       ),
       body: StreamBuilder<List<CatPost>>(
-        stream: postService.streamPostsForUser(currentUser.uid),
+        stream: postService.streamPostsForUser(targetUid),
         builder: (context, snapshot) {
           final posts = snapshot.data ?? [];
           final postCount = posts.length;
@@ -144,7 +150,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               padding: const EdgeInsets.only(bottom: 24),
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 12.0,
+                  ),
                   child: Column(
                     children: [
                       Row(
@@ -153,21 +162,38 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           CircleAvatar(
                             radius: 38,
                             backgroundColor: cs.primaryContainer,
-                            child: Text(
-                              _initials(username),
-                              style: TextStyle(
-                                fontSize: 24,
-                                color: cs.onPrimaryContainer,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            backgroundImage:
+                                _profile?.profilePictureUrl.isNotEmpty == true
+                                ? NetworkImage(_profile!.profilePictureUrl)
+                                : null,
+                            child:
+                                _profile?.profilePictureUrl.isNotEmpty == true
+                                ? null
+                                : Text(
+                                    _initials(username),
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      color: cs.onPrimaryContainer,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Bio — normal weight as requested
+                                if (!isMe) ...[
+                                  Text(
+                                    username,
+                                    style: TextStyle(
+                                      color: cs.onSurface,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                ],
                                 Text(
                                   bio,
                                   style: TextStyle(
@@ -177,7 +203,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                // Posts count chip
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 10,
@@ -212,25 +237,28 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      // Edit Profile Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
-                          onPressed: () {
-                            context.push('/profile-management').then((_) => _loadProfile());
-                          },
-                          style: OutlinedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                      if (isMe) ...[
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              context
+                                  .push('/profile-management')
+                                  .then((_) => _loadProfile());
+                            },
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: const Text(
+                              'Edit Profile',
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
-                          child: const Text(
-                            'Edit Profile',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -257,22 +285,25 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         const SizedBox(height: 4),
                         Text(
                           'Share your first cat sighting on campus!',
-                          style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: cs.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
                   )
                 else
-                  // Grid of posts
                   GridView.builder(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     padding: const EdgeInsets.symmetric(horizontal: 2),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      crossAxisSpacing: 2,
-                      mainAxisSpacing: 2,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 2,
+                          mainAxisSpacing: 2,
+                        ),
                     itemCount: posts.length,
                     itemBuilder: (context, index) {
                       final post = posts[index];
@@ -301,11 +332,15 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                       Icon(
                                         Icons.pets,
                                         size: 28,
-                                        color: cs.onSurfaceVariant.withValues(alpha: 0.7),
+                                        color: cs.onSurfaceVariant.withValues(
+                                          alpha: 0.7,
+                                        ),
                                       ),
                                       const SizedBox(height: 4),
                                       Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4.0,
+                                        ),
                                         child: Text(
                                           post.caption,
                                           maxLines: 2,

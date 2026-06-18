@@ -57,7 +57,7 @@ class _TimelineScreenState extends State<TimelineScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'KucITS 🐱',
+          'KucITS',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
         centerTitle: true,
@@ -66,55 +66,53 @@ class _TimelineScreenState extends State<TimelineScreen> {
             icon: const Icon(Icons.notifications_outlined),
             tooltip: 'Notifications',
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notifications coming soon!')),
-              );
+              context.push('/notifications');
             },
           ),
         ],
       ),
       body: StreamBuilder<List<CatPost>>(
-              stream: postService.streamFeed(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+        stream: postService.streamFeed(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Error loading feed: ${snapshot.error}',
-                      style: TextStyle(color: colorScheme.error),
-                    ),
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Error loading feed: ${snapshot.error}',
+                style: TextStyle(color: colorScheme.error),
+              ),
+            );
+          }
+
+          final posts = snapshot.data ?? [];
+
+          return RefreshIndicator(
+            onRefresh: () async {
+              await Future.delayed(const Duration(milliseconds: 500));
+            },
+            child: ListView.builder(
+              itemCount: posts.length + 2,
+              itemBuilder: (_, index) {
+                if (index == 0) {
+                  return ComposeBox(onTap: _openCompose);
+                }
+                if (index == 1) {
+                  return Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: colorScheme.outlineVariant,
                   );
                 }
-
-                final posts = snapshot.data ?? [];
-
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    await Future.delayed(const Duration(milliseconds: 500));
-                  },
-                  child: ListView.builder(
-                    itemCount: posts.length + 2,
-                    itemBuilder: (_, index) {
-                      if (index == 0) {
-                        return ComposeBox(onTap: _openCompose);
-                      }
-                      if (index == 1) {
-                        return Divider(
-                          height: 1,
-                          thickness: 1,
-                          color: colorScheme.outlineVariant,
-                        );
-                      }
-                      final post = posts[index - 2];
-                      return PostCard(post: post);
-                    },
-                  ),
-                );
+                final post = posts[index - 2];
+                return PostCard(post: post);
               },
             ),
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: _openCompose,
         tooltip: 'New post',

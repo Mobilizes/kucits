@@ -19,12 +19,12 @@ class ComposeBox extends StatelessWidget {
             CircleAvatar(
               radius: 22,
               backgroundColor: cs.primaryContainer,
-              child: Icon(Icons.person, color: cs.onPrimaryContainer),
+              child: Icon(Icons.pets, color: cs.onPrimaryContainer),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                "What's your cat up to?",
+                "Spotted a cat on campus?",
                 style: TextStyle(fontSize: 16, color: cs.onSurfaceVariant),
               ),
             ),

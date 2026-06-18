@@ -126,6 +126,25 @@ class _CatDetailScreenState extends State<CatDetailScreen> {
     }
   }
 
+  Widget _buildAppBarIcon({
+    required IconData icon,
+    required VoidCallback onPressed,
+    String? tooltip,
+  }) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.35),
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        icon: Icon(icon, color: Colors.white, size: 20),
+        tooltip: tooltip,
+        onPressed: onPressed,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
@@ -174,15 +193,28 @@ class _CatDetailScreenState extends State<CatDetailScreen> {
           SliverAppBar(
             expandedHeight: 280,
             pinned: true,
+            leading: Navigator.canPop(context)
+                ? Container(
+                    margin: const EdgeInsets.only(left: 12, top: 8, bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.35),
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                      onPressed: () => context.pop(),
+                    ),
+                  )
+                : null,
             actions: !_loadingAdmin && _isAdmin
                 ? [
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined),
+                    _buildAppBarIcon(
+                      icon: Icons.edit_outlined,
                       tooltip: 'Edit Cat details',
                       onPressed: () => context.push('/cats/edit/${cat.id}').then((_) => _loadCatData()),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline),
+                    _buildAppBarIcon(
+                      icon: Icons.delete_outline,
                       tooltip: 'Delete Cat',
                       onPressed: () => _deleteCatPrompt(cat),
                     ),

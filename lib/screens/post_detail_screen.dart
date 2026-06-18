@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 import '../models/cat_post.dart';
 import '../models/comment.dart';
 import '../services/post_service.dart';
 import '../services/user_service.dart';
 import 'compose_screen.dart';
+import 'user_profile_screen.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final CatPost post;
@@ -22,6 +24,27 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   final ScrollController _scrollController = ScrollController();
   bool _submittingComment = false;
   int _currentImageIndex = 0;
+  bool _isAdmin = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAdminStatus();
+  }
+
+  Future<void> _checkAdminStatus() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null && !user.isAnonymous) {
+        final profile = await UserService().getUserProfile(user.uid);
+        if (mounted) {
+          setState(() {
+            _isAdmin = profile?.isAdmin ?? false;
+          });
+        }
+      }
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
@@ -37,7 +60,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || user.isAnonymous) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('You must be logged in with an account to comment.')),
+        const SnackBar(
+          content: Text('You must be logged in with an account to comment.'),
+        ),
       );
       return;
     }
@@ -82,9 +107,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error adding comment: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error adding comment: $e')));
       }
     } finally {
       if (mounted) {
@@ -100,7 +125,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete Post'),
-        content: const Text('Are you sure you want to delete this encounter? This cannot be undone.'),
+        content: const Text(
+          'Are you sure you want to delete this encounter? This cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -124,8 +151,43 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
           const SnackBar(content: Text('Post deleted successfully.')),
         );
       } else if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Failed to delete post.')));
+      }
+    }
+  }
+
+  Future<void> _deleteComment(String postId, String commentId) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Comment'),
+        content: const Text('Are you sure you want to delete this comment?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && mounted) {
+      final postService = Provider.of<PostService>(context, listen: false);
+      final success = await postService.deleteComment(postId, commentId);
+      if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to delete post.')),
+          const SnackBar(content: Text('Comment deleted successfully.')),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to delete comment.')),
         );
       }
     }
@@ -146,10 +208,16 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('posts').doc(widget.post.id).snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('posts')
+          .doc(widget.post.id)
+          .snapshots(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            !snapshot.hasData) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
 
         if (snapshot.hasError) {
@@ -162,30 +230,37 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         if (!snapshot.hasData || !snapshot.data!.exists) {
           return Scaffold(
             appBar: AppBar(title: const Text('Post Deleted')),
-            body: const Center(child: Text('This post is no longer available.')),
+            body: const Center(
+              child: Text('This post is no longer available.'),
+            ),
           );
         }
 
-        final postDoc = snapshot.data! as DocumentSnapshot<Map<String, dynamic>>;
+        final postDoc =
+            snapshot.data! as DocumentSnapshot<Map<String, dynamic>>;
         final currentPost = CatPost.fromSnapshot(postDoc);
         final isAuthor = currentUser?.uid == currentPost.authorId;
+        final showDelete = isAuthor || _isAdmin;
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Encounter Details', style: TextStyle(fontWeight: FontWeight.bold)),
+            title: const Text(
+              'Encounter Details',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             actions: [
-              if (isAuthor) ...[
+              if (isAuthor)
                 IconButton(
                   icon: const Icon(Icons.edit_outlined),
                   onPressed: () => _editPost(currentPost),
                   tooltip: 'Edit post',
                 ),
+              if (showDelete)
                 IconButton(
                   icon: const Icon(Icons.delete_outline, color: Colors.red),
                   onPressed: () => _deletePost(currentPost.id),
                   tooltip: 'Delete post',
                 ),
-              ]
             ],
           ),
           body: Column(
@@ -213,32 +288,57 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
   Widget _buildAuthorHeader(BuildContext context, CatPost post) {
     final cs = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Row(
-        children: [
-          CircleAvatar(
-            backgroundColor: cs.primaryContainer,
-            child: Text(post.authorUsername.isEmpty ? 'U' : post.authorUsername[0].toUpperCase(),
-                style: TextStyle(fontWeight: FontWeight.bold, color: cs.onPrimaryContainer)),
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => UserProfileScreen(userId: post.authorId),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  post.authorUsername,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                Text(
-                  _formatTimestamp(post.timestamp),
-                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
-                ),
-              ],
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            CircleAvatar(
+              backgroundColor: cs.primaryContainer,
+              backgroundImage: post.authorAvatarUrl.isNotEmpty
+                  ? NetworkImage(post.authorAvatarUrl)
+                  : null,
+              child: post.authorAvatarUrl.isNotEmpty
+                  ? null
+                  : Text(
+                      post.authorUsername.isEmpty
+                          ? 'U'
+                          : post.authorUsername[0].toUpperCase(),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: cs.onPrimaryContainer,
+                      ),
+                    ),
             ),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    post.authorUsername,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text(
+                    _formatTimestamp(post.timestamp),
+                    style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -247,10 +347,31 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     final cs = Theme.of(context).colorScheme;
     if (post.photoUrls.isEmpty) return const SizedBox.shrink();
 
+    if (post.photoUrls.length == 1) {
+      return InteractiveViewer(
+        child: Image.network(
+          post.photoUrls[0],
+          width: double.infinity,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => Container(
+            color: cs.surfaceContainerHighest,
+            height: 200,
+            child: Center(
+              child: Icon(
+                Icons.broken_image,
+                size: 48,
+                color: cs.onSurfaceVariant,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
     return Column(
       children: [
-        SizedBox(
-          height: 300,
+        AspectRatio(
+          aspectRatio: 1.0,
           child: PageView.builder(
             itemCount: post.photoUrls.length,
             onPageChanged: (index) {
@@ -260,14 +381,21 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             },
             itemBuilder: (context, index) {
               return InteractiveViewer(
-                child: Image.network(
-                  post.photoUrls[index],
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  errorBuilder: (context, error, stackTrace) => Container(
-                    color: cs.surfaceContainerHighest,
-                    child: Center(
-                      child: Icon(Icons.broken_image, size: 48, color: cs.onSurfaceVariant),
+                child: Container(
+                  color: Colors.black,
+                  child: Image.network(
+                    post.photoUrls[index],
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: cs.surfaceContainerHighest,
+                      child: Center(
+                        child: Icon(
+                          Icons.broken_image,
+                          size: 48,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -287,7 +415,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                 height: 8,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _currentImageIndex == index ? cs.primary : cs.outlineVariant,
+                  color: _currentImageIndex == index
+                      ? cs.primary
+                      : cs.outlineVariant,
                 ),
               ),
             ),
@@ -312,23 +442,29 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             spacing: 8,
             runSpacing: 4,
             children: post.cats.map((cat) {
-              return Chip(
+              return ActionChip(
                 avatar: CircleAvatar(
                   backgroundColor: cs.secondaryContainer,
-                  child: Text(cat.name[0], style: TextStyle(fontSize: 10, color: cs.onSecondaryContainer)),
+                  child: Text(
+                    cat.name[0],
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: cs.onSecondaryContainer,
+                    ),
+                  ),
                 ),
                 label: Text(cat.name, style: const TextStyle(fontSize: 12)),
                 backgroundColor: cs.surfaceContainerLow,
+                onPressed: () {
+                  context.push('/cats/${cat.id}');
+                },
               );
             }).toList(),
           ),
           const SizedBox(height: 12),
 
           // Caption
-          Text(
-            post.caption,
-            style: const TextStyle(fontSize: 16, height: 1.4),
-          ),
+          Text(post.caption, style: const TextStyle(fontSize: 16, height: 1.4)),
           const SizedBox(height: 16),
 
           // Location Tag if present
@@ -337,7 +473,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Coordinates: ${post.location!.latitude}, ${post.location!.longitude}'),
+                    content: Text(
+                      'Coordinates: ${post.location!.latitude}, ${post.location!.longitude}',
+                    ),
                   ),
                 );
               },
@@ -379,9 +517,16 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                             isLiked ? Icons.favorite : Icons.favorite_border,
                             color: isLiked ? Colors.red : null,
                           ),
-                          onPressed: () => postService.toggleLike(post.id, currentUser.uid),
+                          onPressed: () =>
+                              postService.toggleLike(post.id, currentUser.uid),
                         ),
-                        Text('${post.likes}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                        Text(
+                          '${post.likes}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ],
                     );
                   },
@@ -389,15 +534,36 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               else
                 Row(
                   children: [
-                    const Icon(Icons.favorite_border, color: Colors.grey),
-                    const SizedBox(width: 4),
+                    IconButton(
+                      icon: const Icon(Icons.favorite_border),
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).clearSnackBars();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Text(
+                              'You must log in to like posts.',
+                            ),
+                            action: SnackBarAction(
+                              label: 'Login',
+                              onPressed: () => context.push('/login'),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
                     Text('${post.likes}', style: const TextStyle(fontSize: 14)),
                   ],
                 ),
               const SizedBox(width: 16),
               const Icon(Icons.chat_bubble_outline, size: 20),
               const SizedBox(width: 6),
-              Text('${post.comments}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+              Text(
+                '${post.comments}',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ],
@@ -408,12 +574,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   Widget _buildCommentsSection(BuildContext context, String postId) {
     final postService = Provider.of<PostService>(context, listen: false);
     final cs = Theme.of(context).colorScheme;
+    final currentUser = FirebaseAuth.instance.currentUser;
 
     return StreamBuilder<List<Comment>>(
       stream: postService.streamComments(postId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: Padding(padding: EdgeInsets.all(16.0), child: CircularProgressIndicator()));
+          return const Center(
+            child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: CircularProgressIndicator(),
+            ),
+          );
         }
 
         if (snapshot.hasError) {
@@ -427,7 +599,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             child: Center(
               child: Text(
                 'No comments yet. Be the first to share your thoughts!',
-                style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
+                style: TextStyle(
+                  fontStyle: FontStyle.italic,
+                  color: Colors.grey,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -450,29 +625,87 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               itemCount: comments.length,
               itemBuilder: (context, index) {
                 final comment = comments[index];
+                final isCommentAuthor = currentUser?.uid == comment.authorId;
+                final showDeleteComment = isCommentAuthor || _isAdmin;
+
                 return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: cs.secondaryContainer,
-                    radius: 16,
-                    child: Text(
-                      comment.authorUsername.isEmpty ? 'U' : comment.authorUsername[0].toUpperCase(),
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: cs.onSecondaryContainer),
+                  leading: GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              UserProfileScreen(userId: comment.authorId),
+                        ),
+                      );
+                    },
+                    child: CircleAvatar(
+                      backgroundColor: cs.secondaryContainer,
+                      radius: 16,
+                      backgroundImage: comment.authorAvatarUrl.isNotEmpty
+                          ? NetworkImage(comment.authorAvatarUrl)
+                          : null,
+                      child: comment.authorAvatarUrl.isNotEmpty
+                          ? null
+                          : Text(
+                              comment.authorUsername.isEmpty
+                                  ? 'U'
+                                  : comment.authorUsername[0].toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: cs.onSecondaryContainer,
+                              ),
+                            ),
                     ),
                   ),
                   title: Row(
                     children: [
-                      Text(comment.authorUsername, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  UserProfileScreen(userId: comment.authorId),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          comment.authorUsername,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
                       const Spacer(),
                       Text(
                         _formatTimestamp(comment.timestamp),
-                        style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: cs.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
                   subtitle: Padding(
                     padding: const EdgeInsets.only(top: 4.0),
-                    child: Text(comment.text, style: const TextStyle(fontSize: 14)),
+                    child: Text(
+                      comment.text,
+                      style: const TextStyle(fontSize: 14),
+                    ),
                   ),
+                  trailing: showDeleteComment
+                      ? IconButton(
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.red,
+                            size: 18,
+                          ),
+                          onPressed: () => _deleteComment(postId, comment.id),
+                        )
+                      : null,
                 );
               },
             ),
@@ -484,21 +717,47 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
   Widget _buildCommentInputSection(BuildContext context, String postId) {
     final currentUser = FirebaseAuth.instance.currentUser;
+    final cs = Theme.of(context).colorScheme;
+
     if (currentUser == null || currentUser.isAnonymous) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainer,
-          border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant, width: 0.5)),
+          color: cs.surfaceContainer,
+          border: Border(top: BorderSide(color: cs.outlineVariant, width: 0.5)),
         ),
-        child: const Center(
-          child: Text('Sign in to leave a comment.', style: TextStyle(fontStyle: FontStyle.italic)),
+        child: InkWell(
+          onTap: () {
+            ScaffoldMessenger.of(context).clearSnackBars();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('You must log in to comment.'),
+                action: SnackBarAction(
+                  label: 'Login',
+                  onPressed: () => context.push('/login'),
+                ),
+              ),
+            );
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.lock_outline, size: 16, color: cs.onSurfaceVariant),
+              const SizedBox(width: 8),
+              const Text(
+                'Log in to leave a comment…',
+                style: TextStyle(
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: EdgeInsets.only(
         left: 12,
@@ -520,13 +779,20 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
               decoration: const InputDecoration(
                 hintText: 'Add a comment...',
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 8,
+                ),
               ),
             ),
           ),
           IconButton(
             icon: _submittingComment
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
                 : Icon(Icons.send, color: cs.primary),
             onPressed: _submittingComment ? null : () => _submitComment(postId),
           ),

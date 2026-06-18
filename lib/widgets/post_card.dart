@@ -6,6 +6,7 @@ import '../models/cat.dart';
 import '../models/cat_post.dart';
 import '../services/post_service.dart';
 import '../screens/post_detail_screen.dart';
+import '../screens/user_profile_screen.dart';
 
 class PostCard extends StatelessWidget {
   final CatPost post;
@@ -75,9 +76,19 @@ class PostCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Text(
-                  'by ${post.authorUsername}',
-                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => UserProfileScreen(userId: post.authorId),
+                      ),
+                    );
+                  },
+                  child: Text(
+                    'by ${post.authorUsername}',
+                    style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                  ),
                 ),
               ],
             ),
@@ -147,21 +158,25 @@ class PostCard extends StatelessWidget {
 
   Widget _buildPhoto(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final placeholder = Container(
-      height: 200,
-      color: cs.surfaceContainerHighest,
-      child: Center(
-          child: Icon(Icons.pets, size: 60, color: cs.onSurfaceVariant)),
+    final placeholder = AspectRatio(
+      aspectRatio: 1.0,
+      child: Container(
+        color: cs.surfaceContainerHighest,
+        child: Center(
+            child: Icon(Icons.pets, size: 60, color: cs.onSurfaceVariant)),
+      ),
     );
 
     if (post.photoUrls.isEmpty) return placeholder;
 
-    return Image.network(
-      post.photoUrls.first,
-      width: double.infinity,
-      height: 200,
-      fit: BoxFit.cover,
-      errorBuilder: (context, error, stack) => placeholder,
+    return AspectRatio(
+      aspectRatio: 1.0,
+      child: Image.network(
+        post.photoUrls.first,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stack) => placeholder,
+      ),
     );
   }
 
@@ -203,9 +218,20 @@ class PostCard extends StatelessWidget {
           else
             Row(
               children: [
-                const IconButton(
-                  icon: Icon(Icons.favorite_border, size: 20, color: Colors.grey),
-                  onPressed: null,
+                IconButton(
+                  icon: const Icon(Icons.favorite_border, size: 20),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).clearSnackBars();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('You must log in to like posts.'),
+                        action: SnackBarAction(
+                          label: 'Login',
+                          onPressed: () => context.push('/login'),
+                        ),
+                      ),
+                    );
+                  },
                 ),
                 Text('${post.likes}', style: const TextStyle(fontSize: 13)),
               ],

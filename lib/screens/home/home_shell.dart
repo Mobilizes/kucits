@@ -20,8 +20,8 @@ class HomeShell extends StatelessWidget {
             label: 'Forum',
           ),
           NavigationDestination(
-            icon: Icon(Icons.pets_outlined),
-            selectedIcon: Icon(Icons.pets),
+            icon: Icon(Icons.window_outlined),
+            selectedIcon: Icon(Icons.window),
             label: 'Cats',
           ),
           NavigationDestination(
