@@ -114,9 +114,9 @@ class _CatDetailScreenState extends State<CatDetailScreen> {
       final success = await catService.deleteCat(cat.id);
       if (!mounted) return;
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${cat.name} profile deleted.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('${cat.name} profile deleted.')));
         context.pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -151,9 +151,7 @@ class _CatDetailScreenState extends State<CatDetailScreen> {
     final postService = Provider.of<PostService>(context);
 
     if (_loadingCat) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_cat == null) {
@@ -165,7 +163,11 @@ class _CatDetailScreenState extends State<CatDetailScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.pets, size: 64, color: cs.onSurfaceVariant.withValues(alpha: 0.5)),
+                Icon(
+                  Icons.pets,
+                  size: 64,
+                  color: cs.onSurfaceVariant.withValues(alpha: 0.5),
+                ),
                 const SizedBox(height: 16),
                 const Text(
                   'Cat Profile Not Found',
@@ -201,7 +203,11 @@ class _CatDetailScreenState extends State<CatDetailScreen> {
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                      icon: const Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                        size: 20,
+                      ),
                       onPressed: () => context.pop(),
                     ),
                   )
@@ -211,7 +217,9 @@ class _CatDetailScreenState extends State<CatDetailScreen> {
                     _buildAppBarIcon(
                       icon: Icons.edit_outlined,
                       tooltip: 'Edit Cat details',
-                      onPressed: () => context.push('/cats/edit/${cat.id}').then((_) => _loadCatData()),
+                      onPressed: () => context
+                          .push('/cats/edit/${cat.id}')
+                          .then((_) => _loadCatData()),
                     ),
                     _buildAppBarIcon(
                       icon: Icons.delete_outline,
@@ -225,26 +233,49 @@ class _CatDetailScreenState extends State<CatDetailScreen> {
                 cat.name,
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  shadows: [Shadow(color: Colors.black45, blurRadius: 4, offset: Offset(0, 1.5))],
+                  color: Colors.white,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black87,
+                      blurRadius: 4,
+                      offset: Offset(0, 1.5),
+                    ),
+                  ],
                 ),
               ),
-              background: Container(
-                color: cs.surfaceContainerHighest,
-                child: hasImage
-                    ? Image.network(
-                        cat.iconUrl,
-                        fit: BoxFit.cover,
-                      )
-                    : Center(
-                        child: Text(
-                          cat.name.isNotEmpty ? cat.name[0].toUpperCase() : 'C',
-                          style: TextStyle(
-                            fontSize: 72,
-                            fontWeight: FontWeight.bold,
-                            color: cs.onSurfaceVariant.withValues(alpha: 0.6),
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(
+                    color: cs.surfaceContainerHighest,
+                    child: hasImage
+                        ? Image.network(cat.iconUrl, fit: BoxFit.cover)
+                        : Center(
+                            child: Text(
+                              cat.name.isNotEmpty
+                                  ? cat.name[0].toUpperCase()
+                                  : 'C',
+                              style: TextStyle(
+                                fontSize: 72,
+                                fontWeight: FontWeight.bold,
+                                color: cs.onSurfaceVariant.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                  ),
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.transparent, Colors.black87],
+                        stops: [0.6, 1.0],
                       ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -264,7 +295,10 @@ class _CatDetailScreenState extends State<CatDetailScreen> {
                       Expanded(
                         child: Text(
                           cat.department,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                          style: const TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -275,9 +309,14 @@ class _CatDetailScreenState extends State<CatDetailScreen> {
                       Icon(Icons.healing_outlined, color: cs.primary, size: 20),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: cat.isNeutered ? Colors.teal.shade100 : Colors.orange.shade100,
+                          color: cat.isNeutered
+                              ? Colors.teal.shade100
+                              : Colors.orange.shade100,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -285,7 +324,9 @@ class _CatDetailScreenState extends State<CatDetailScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
-                            color: cat.isNeutered ? Colors.teal.shade800 : Colors.orange.shade800,
+                            color: cat.isNeutered
+                                ? Colors.teal.shade800
+                                : Colors.orange.shade800,
                           ),
                         ),
                       ),
@@ -308,20 +349,31 @@ class _CatDetailScreenState extends State<CatDetailScreen> {
                     children: [
                       const Text(
                         'Tagged Sightings',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                       const Spacer(),
                       ChoiceChip(
-                        label: const Text('Latest', style: TextStyle(fontSize: 11)),
+                        label: const Text(
+                          'Latest',
+                          style: TextStyle(fontSize: 11),
+                        ),
                         selected: !_sortByPopularity,
-                        onSelected: (_) => setState(() => _sortByPopularity = false),
+                        onSelected: (_) =>
+                            setState(() => _sortByPopularity = false),
                         visualDensity: VisualDensity.compact,
                       ),
                       const SizedBox(width: 6),
                       ChoiceChip(
-                        label: const Text('Popular', style: TextStyle(fontSize: 11)),
+                        label: const Text(
+                          'Popular',
+                          style: TextStyle(fontSize: 11),
+                        ),
                         selected: _sortByPopularity,
-                        onSelected: (_) => setState(() => _sortByPopularity = true),
+                        onSelected: (_) =>
+                            setState(() => _sortByPopularity = true),
                         visualDensity: VisualDensity.compact,
                       ),
                     ],
@@ -333,7 +385,10 @@ class _CatDetailScreenState extends State<CatDetailScreen> {
 
           // Posts Feed List for Cat
           StreamBuilder<List<CatPost>>(
-            stream: postService.streamPostsForCat(cat.id, sortByPopularity: _sortByPopularity),
+            stream: postService.streamPostsForCat(
+              cat.id,
+              sortByPopularity: _sortByPopularity,
+            ),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const SliverFillRemaining(
@@ -384,13 +439,10 @@ class _CatDetailScreenState extends State<CatDetailScreen> {
               }
 
               return SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final post = posts[index];
-                    return PostCard(post: post);
-                  },
-                  childCount: posts.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final post = posts[index];
+                  return PostCard(post: post);
+                }, childCount: posts.length),
               );
             },
           ),
