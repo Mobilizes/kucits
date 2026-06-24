@@ -185,10 +185,15 @@ class _ComposeScreenState extends State<ComposeScreen> {
                                 subtitle: Text(cat.department),
                                 secondary: CircleAvatar(
                                   backgroundColor: cs.primaryContainer,
-                                  child: Text(cat.name[0],
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: cs.onPrimaryContainer)),
+                                  backgroundImage: cat.iconUrl.isNotEmpty
+                                      ? NetworkImage(cat.iconUrl)
+                                      : null,
+                                  child: cat.iconUrl.isEmpty
+                                      ? Text(cat.name[0],
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: cs.onPrimaryContainer))
+                                      : null,
                                 ),
                                 onChanged: (_) {
                                   setState(() {
