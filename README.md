@@ -4,7 +4,7 @@
 **Course:** Mobile Programming (PPB) B
 **Platform:** Android (primary), iOS, Web (secondary)
 **Framework:** Flutter 3.x * Dart ^3.11
-**Backend:** Firebase (Auth, Cloud Firestore, Storage, Messaging, Crashlytics)
+**Backend:** Firebase (Auth, Cloud Firestore, Messaging, Crashlytics), ImgBB (Image Storage)
 
 ---
 
@@ -37,11 +37,11 @@
 
 ### 1.2 Core Value Proposition
 
-| For                     | Value                                                          |
-|--------------------------|----------------------------------------------------------------|
-| Students / Cat lovers    | Discover campus cats, follow their stories, share encounters   |
-| Department Admins        | Maintain an accurate database of cats in their area            |
-| Campus community         | A shared social feed that brings joy and connection            |
+| For                   | Value                                                        |
+| --------------------- | ------------------------------------------------------------ |
+| Students / Cat lovers | Discover campus cats, follow their stories, share encounters |
+| Department Admins     | Maintain an accurate database of cats in their area          |
+| Campus community      | A shared social feed that brings joy and connection          |
 
 ### 1.3 Key Differentiators
 
@@ -62,7 +62,7 @@ Based on the course specifications, the app should fulfill the following:
 - Navigation Bar (Bottom Navigation)
 
 **Bonus Architecture & DevOps:**
-- Cloud Storage Services (Firebase Storage for images)
+- Cloud Storage Services (ImgBB for images)
 - Firebase Crashlytics (Real-time crash reporting)
 
 ---
@@ -71,29 +71,29 @@ Based on the course specifications, the app should fulfill the following:
 
 ### 3.1 What Is Built (Implemented)
 
-| Area               | Details                                                                 |
-|--------------------|-------------------------------------------------------------------------|
-| **Firebase Setup** | Firebase Core, Auth, and Firestore SDKs integrated. Multi-platform config. |
-| **Authentication** | Full email/password auth and anonymous guest sign-in. Integrated with GoRouter redirection. |
-| **Auth Service**   | `AuthService` class wrapping `FirebaseAuth`. |
-| **Theme System**   | Custom Material 3 theme with Montserrat font and ITS Blue. Dark mode uses neutral gray palette, and settings persist via `shared_preferences`. |
-| **Timeline Screen**| Scrollable feed with `RefreshIndicator`, showing real posts streamed from Firestore. |
-| **Compose Screen** | Full-screen compose screen with cat tagging, caption length validation, location tagging selection, and Firestore post creation. |
-| **User Profile**   | Tab 3 displaying user initials, bio, post count chip, and a 3-column photo grid of the user's posts. |
-| **Settings Screen**| Dedicated settings screen (`/settings`) for dark mode toggling and account sign-out with confirmation. |
-| **Map Integration**| Fully functional Map tab (`/map`) displaying markers for cat sightings, and `LocationPickerScreen` for selecting coordinates on a map when composing posts. |
-| **Media & Cropping**| Image selection uses `image_picker`, custom cropping uses `image_cropper` (1:1 square for cat profiles, free aspect ratio loop for sightings posts), and compression uses `flutter_image_compress` prior to Firebase Storage uploads. |
-| **Cat Database**   | Fully integrated database screen, collapsible map overlay, faculty/department cascading dropdown filters, sterilization choice chips, and grid view. |
-| **Moderation & Likes**| Admin check gates (`isAdmin` profile checks), admin-only FAB/edit/delete buttons, unified add/edit cat form, orphan post safeguards, and transaction-based like/comment mechanisms. |
-| **Push Notifications** | Firebase Messaging integrated: permission request, FCM token saved to Firestore user doc on login, foreground in-app banners via `ScaffoldMessengerKey`, background/terminated tap handler. |
-| **Crashlytics**    | Firebase Crashlytics integrated: Flutter framework errors forwarded via `FlutterError.onError`, async/platform errors via `PlatformDispatcher.instance.onError`, Crashlytics Gradle plugin enabled. |
-| **Data Models**    | `Cat`, `CatPost`, `UserProfile`, and `Comment` models with Firestore serialisation. |
+| Area                   | Details                                                                                                                                                                                                                               |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Firebase Setup**     | Firebase Core, Auth, and Firestore SDKs integrated. Multi-platform config.                                                                                                                                                            |
+| **Authentication**     | Full email/password auth and anonymous guest sign-in. Integrated with GoRouter redirection.                                                                                                                                           |
+| **Auth Service**       | `AuthService` class wrapping `FirebaseAuth`.                                                                                                                                                                                          |
+| **Theme System**       | Custom Material 3 theme with Montserrat font and ITS Blue. Dark mode uses neutral gray palette, and settings persist via `shared_preferences`.                                                                                        |
+| **Timeline Screen**    | Scrollable feed with `RefreshIndicator`, showing real posts streamed from Firestore.                                                                                                                                                  |
+| **Compose Screen**     | Full-screen compose screen with cat tagging, caption length validation, location tagging selection, and Firestore post creation.                                                                                                      |
+| **User Profile**       | Tab 3 displaying user initials, bio, post count chip, and a 3-column photo grid of the user's posts.                                                                                                                                  |
+| **Settings Screen**    | Dedicated settings screen (`/settings`) for dark mode toggling and account sign-out with confirmation.                                                                                                                                |
+| **Map Integration**    | Fully functional Map tab (`/map`) displaying markers for cat sightings, and `LocationPickerScreen` for selecting coordinates on a map when composing posts.                                                                           |
+| **Media & Cropping**   | Image selection uses `image_picker`, custom cropping uses `image_cropper` (1:1 square for cat profiles, free aspect ratio loop for sightings posts), and compression uses `flutter_image_compress` prior to Firebase Storage uploads. |
+| **Cat Database**       | Fully integrated database screen, collapsible map overlay, faculty/department cascading dropdown filters, sterilization choice chips, and grid view.                                                                                  |
+| **Moderation & Likes** | Admin check gates (`isAdmin` profile checks), admin-only FAB/edit/delete buttons, unified add/edit cat form, orphan post safeguards, and transaction-based like/comment mechanisms.                                                   |
+| **Push Notifications** | Firebase Messaging integrated: permission request, FCM token saved to Firestore user doc on login, foreground in-app banners via `ScaffoldMessengerKey`, background/terminated tap handler.                                           |
+| **Crashlytics**        | Firebase Crashlytics integrated: Flutter framework errors forwarded via `FlutterError.onError`, async/platform errors via `PlatformDispatcher.instance.onError`, Crashlytics Gradle plugin enabled.                                   |
+| **Data Models**        | `Cat`, `CatPost`, `UserProfile`, and `Comment` models with Firestore serialisation.                                                                                                                                                   |
 
 > [!IMPORTANT]
-> **Backend Configuration Requirement**: While all client-side logic for Firebase Storage and Firestore is complete and verified, the Firebase project owner must manually:
-> 1. Enable/activate **Firebase Storage** in the Firebase Console (requires upgrading the project to the Blaze Pay-as-you-go plan, which remains $0/month for testing under free tier limits).
-> 2. Create the required composite indexes for Firestore (a query error link will print in the VS Code debug console upon visiting a cat details page for the first time).
-> 3. To send push notifications to users (e.g., on comment/like), use the Firebase Console → Cloud Messaging → Send test message, targeting the FCM token stored in each user's Firestore doc (`users/{uid}/fcmToken`). Automated server-side triggers would require Firebase Cloud Functions (not required for this course).
+> **Backend Configuration Requirement**:
+> 1. **ImgBB Setup**: You must provide an ImgBB API key in `lib/config/env.dart` for image uploads to work.
+> 2. **Firestore Indexes**: Create the required composite indexes for Firestore (a query error link will print in the VS Code debug console upon visiting a cat details page for the first time).
+> 3. **Push Notifications**: To send push notifications to users (e.g., on comment/like), use the Firebase Console → Cloud Messaging → Send test message, targeting the FCM token stored in each user's Firestore doc (`users/{uid}/fcmToken`).
 
 ### 3.2 What Is Placeholder / Not Yet Functional (Pending)
 
@@ -127,59 +127,54 @@ Firebase SDKs (Firestore, Auth, Storage, Messaging)
 
 ## 5. Directory Structure
 
-### Target Structure
+### Actual Structure
 
 ```text
 lib/
 ├── main.dart
 ├── firebase_options.dart
 ├── app/
-│   ├── router.dart               # Named routes / GoRouter config
-│   └── theme.dart                # Theme data extraction
+│   ├── router.dart
+│   ├── theme.dart
+│   └── theme_provider.dart
+├── config/
+│   ├── env.dart                  # API keys (ImgBB)
+│   └── env.dart.example
 ├── models/
 │   ├── cat.dart
 │   ├── cat_post.dart
-│   ├── user_profile.dart
-│   └── comment.dart
+│   ├── comment.dart
+│   └── user_profile.dart
 ├── screens/
-│   ├── auth/
-│   │   ├── login_screen.dart
-│   │   ├── register_screen.dart
-│   │   └── reset_password_screen.dart
 │   ├── home/
-│   │   ├── home_shell.dart       # Bottom nav shell
-│   │   └── timeline_screen.dart
-│   ├── compose/
-│   │   └── compose_screen.dart
-│   ├── profile/
-│   │   ├── user_profile_screen.dart
-│   │   └── edit_profile_screen.dart
-│   ├── cat/
-│   │   ├── cat_database_screen.dart
-│   │   ├── cat_detail_screen.dart
-│   │   ├── admin_add_cat_screen.dart
-│   │   └── admin_edit_cat_screen.dart
-│   ├── post/
-│   │   └── post_detail_screen.dart
-│   └── map/
-│       └── campus_map_widget.dart
+│   │   └── home_shell.dart       # Bottom nav shell
+│   ├── admin_cat_form_screen.dart
+│   ├── cat_database_screen.dart
+│   ├── cat_detail_screen.dart
+│   ├── compose_screen.dart
+│   ├── location_picker_screen.dart
+│   ├── login_screen.dart
+│   ├── map_screen.dart
+│   ├── notifications_screen.dart
+│   ├── post_detail_screen.dart
+│   ├── profile_management_screen.dart
+│   ├── register_screen.dart
+│   ├── reset_password_screen.dart
+│   ├── settings_screen.dart
+│   ├── timeline_screen.dart
+│   └── user_profile_screen.dart
 ├── services/
 │   ├── auth_service.dart
-│   ├── post_service.dart
 │   ├── cat_service.dart
-│   ├── user_service.dart
+│   ├── database_service.dart
+│   ├── notification_service.dart
+│   ├── post_service.dart
 │   ├── storage_service.dart
-│   ├── location_service.dart
-│   └── notification_service.dart
-├── widgets/
-│   ├── compose_box.dart
-│   ├── post_card.dart
-│   ├── comment_tile.dart
-│   └── map_view_overlay.dart
-└── utils/
-    ├── constants.dart
-    ├── validators.dart
-    └── formatters.dart
+│   └── user_service.dart
+└── widgets/
+    ├── compose_box.dart
+    ├── map_view_overlay.dart
+    └── post_card.dart
 ```
 
 ---
@@ -293,19 +288,9 @@ firestore-root/
     └── {username}: {uid}
 ```
 
-### 7.2 Storage Structure
+### 7.2 Storage Structure (ImgBB)
 
-```text
-storage-root/
-├── avatars/
-│   └── {uid}.jpg                 # User profile photos
-├── cat_icons/
-│   └── {catId}.jpg               # Cat profile icons
-└── posts/
-    └── {postId}/
-        ├── 1.jpg                 # Post photos (max 10MB each)
-        └── 2.jpg
-```
+Images (avatars, cat icons, and post photos) are uploaded directly to ImgBB via its REST API. The resulting direct image URLs are then saved as string fields within the respective Firestore documents.
 
 ---
 
@@ -325,7 +310,7 @@ storage-root/
 
 ### 8.3 Post Creation (Forum)
 - **Tagging**: Every post must tag at least one cat from the database.
-- **Media**: Users can upload up to 4 photos per post. To prevent excessive bandwidth and storage usage, images are automatically downscaled and compressed on the client side (e.g., max 1080p, JPEG quality 80) using the `flutter_image_compress` package before uploading to Firebase Storage.
+- **Media**: Users can upload up to 4 photos per post. To prevent excessive bandwidth and storage usage, images are automatically downscaled and compressed on the client side (e.g., max 1080p, JPEG quality 80) using the `flutter_image_compress` package before uploading to ImgBB.
 - **Location**: Users can tag a location using the Google Maps API.
 - **Caption**: Text description of the encounter.
 
@@ -377,35 +362,44 @@ storage-root/
 
 ## 10. Tech Stack & Dependencies
 
-| Package                 | Purpose                                         |
-|-------------------------|-------------------------------------------------|
-| `flutter` (SDK)         | Core framework                                  |
-| `firebase_core`         | Firebase initialisation                         |
-| `firebase_auth`         | Authentication                                  |
-| `cloud_firestore`       | Database                                        |
-| `firebase_storage`      | Photo uploads (posts, avatars, cat icons)       |
-| `firebase_messaging`    | Push notifications (Mandatory Spec)             |
-| `firebase_crashlytics`  | Real-time crash reporting (Bonus Spec)          |
-| `provider`              | State management and dependency injection       |
-| `go_router`             | Declarative routing and redirect logic          |
-| `shared_preferences`    | Persistent local key-value settings storage     |
-| `google_maps_flutter`   | Interactive map integration and location tags   |
-| `image_picker`          | Camera/gallery access (max 4 photos)            |
-| `flutter_image_compress`| Client-side image resizing and compression      |
-| `cached_network_image`  | Cached image loading with placeholders          |
+| Package                  | Purpose                                       |
+| ------------------------ | --------------------------------------------- |
+| `flutter` (SDK)          | Core framework                                |
+| `firebase_core`          | Firebase initialisation                       |
+| `firebase_auth`          | Authentication                                |
+| `cloud_firestore`        | Database                                      |
+| `http`                   | REST API calls (ImgBB photo uploads)          |
+| `firebase_messaging`     | Push notifications (Mandatory Spec)           |
+| `firebase_crashlytics`   | Real-time crash reporting (Bonus Spec)        |
+| `provider`               | State management and dependency injection     |
+| `go_router`              | Declarative routing and redirect logic        |
+| `shared_preferences`     | Persistent local key-value settings storage   |
+| `google_maps_flutter`    | Interactive map integration and location tags |
+| `image_picker`           | Camera/gallery access (max 4 photos)          |
+| `flutter_image_compress` | Client-side image resizing and compression    |
+| `cached_network_image`   | Cached image loading with placeholders        |
 
 ### 10.1 Environment Setup (Local Keys)
 
-To configure Google Maps locally for development, the following configuration files must be created manually (these are ignored by Git for security):
+To configure the project locally, create the following configuration files (these are ignored by Git for security):
 
-- **Android**: Add the API key to [local.properties](file:///d:/Uni/PPB/kucits/android/local.properties):
-  ```properties
-  GOOGLE_MAPS_API_KEY=<your_api_key>
-  ```
-- **iOS**: Create [Secret.xcconfig](file:///d:/Uni/PPB/kucits/ios/Flutter/Secret.xcconfig) under `ios/Flutter/` and add the API key:
-  ```config
-  GOOGLE_MAPS_API_KEY = <your_api_key>
-  ```
+1. **ImgBB API Key**:
+   Create `lib/config/env.dart` and add your ImgBB key:
+   ```dart
+   class Env {
+     static const String imgbbApiKey = 'YOUR_API_KEY';
+   }
+   ```
+
+2. **Google Maps API Key**:
+   - **Android**: Add the API key to `android/local.properties`:
+     ```properties
+     GOOGLE_MAPS_API_KEY=<your_api_key>
+     ```
+   - **iOS**: Create `ios/Flutter/Secret.xcconfig` and add the API key:
+     ```config
+     GOOGLE_MAPS_API_KEY = <your_api_key>
+     ```
 
 *(Note: Google Sign-In is intentionally excluded to focus on core requirements, though it may be added later if time permits.)*
 
@@ -426,7 +420,7 @@ To configure Google Maps locally for development, the following configuration fi
 - `[x]` Integrate `image_cropper` for 1:1 square cropping on cat profile photos.
 
 ### Phase 3: Post Creation & Storage `[Completed]`
-- `[x]` Integrate `image_picker` and `firebase_storage` for handling up to 4 images.
+- `[x]` Integrate `image_picker` and `http` (ImgBB) for handling up to 4 images.
 - `[x]` Integrate `image_cropper` for multi-image free aspect ratio cropping on sighting posts.
 - `[x]` Integrate `google_maps_flutter` for location tagging in posts.
 - `[x]` Wire `ComposeScreen` to write complete `CatPost` documents to Firestore (including client-side image compression).
