@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
-
 import '../config/env.dart';
 
 class StorageService {
@@ -29,7 +28,9 @@ class StorageService {
 
       final uri = Uri.parse('https://api.imgbb.com/1/upload?key=$_apiKey');
       final request = http.MultipartRequest('POST', uri)
-        ..files.add(await http.MultipartFile.fromPath('image', compressedFile.path));
+        ..files.add(
+          await http.MultipartFile.fromPath('image', compressedFile.path),
+        );
 
       final response = await request.send();
       if (response.statusCode == 200) {
@@ -47,8 +48,9 @@ class StorageService {
   Future<File?> _compressImage(File file) async {
     try {
       final tempDir = await getTemporaryDirectory();
-      final targetPath = '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}_compressed.jpg';
-      
+      final targetPath =
+          '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}_compressed.jpg';
+
       final result = await FlutterImageCompress.compressAndGetFile(
         file.absolute.path,
         targetPath,

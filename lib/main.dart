@@ -39,9 +39,6 @@ void main() async {
 
   NotificationService.messengerKey = scaffoldMessengerKey;
   await NotificationService.initialize();
-
-  CatService().seedCatsIfEmpty();
-
   runApp(const KucITSApp());
 }
 

@@ -23,7 +23,7 @@ class AdminCatFormScreen extends StatefulWidget {
 class _AdminCatFormScreenState extends State<AdminCatFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  
+
   String? _selectedFaculty;
   String? _selectedDepartment;
   bool _isNeutered = false;
@@ -33,21 +33,71 @@ class _AdminCatFormScreenState extends State<AdminCatFormScreen> {
 
   bool _loadingCat = false;
   bool _submitting = false;
-  
+
   bool _isAdmin = false;
   bool _loadingAdminCheck = true;
 
   final ImagePicker _picker = ImagePicker();
 
   final Map<String, List<String>> _faculties = {
-    'FSAD (Sains & Analitika Data)': ['Fisika', 'Kimia', 'Matematika', 'Biologi', 'Statistika', 'Aktuaria'],
-    'FTIRS (Teknologi Industri)': ['Teknik Mesin', 'Teknik Kimia', 'Teknik Fisika', 'Rekayasa Keselamatan Proses', 'Teknik Industri', 'Teknik Material dan Metalurgi', 'Teknik Pangan'],
-    'FTK (Teknologi Kelautan)': ['Teknik Perkapalan', 'Teknik Sistem Perkapalan', 'Teknik Kelautan', 'Teknik Transportasi Laut', 'Teknik Lepas Pantai'],
-    'FTSPK (Sipil, Perencanaan & Kebumian)': ['Teknik Sipil', 'Arsitektur', 'Teknik Lingkungan', 'Teknik Geomatika', 'Perencanaan Wilayah Kota', 'Teknik Geofisika', 'Teknik Pertambangan'],
-    'FTEIC (Elektro & Informatika)': ['Teknik Elektro', 'Teknik Informatika', 'Sistem Informasi', 'Teknik Komputer', 'Teknik Biomedik', 'Teknologi Informasi', 'Teknik Telekomunikasi'],
-    'FDKBD (Desain Kreatif & Bisnis)': ['Desain Produk', 'Desain Interior', 'Desain Komunikasi Visual', 'Manajemen Bisnis', 'Studi Pembangunan'],
-    'FV (Vokasi)': ['Teknik Infrastruktur Sipil', 'Teknik Mesin Industri', 'Teknik Elektro Otomasi', 'Teknik Kimia Industri', 'Teknik Instrumentasi', 'Statistika Bisnis'],
-    'FKK (Kedokteran & Kesehatan)': ['Teknologi Kedokteran', 'Kedokteran'],
+    'FSAD': [
+      'Fisika',
+      'Kimia',
+      'Matematika',
+      'Biologi',
+      'Statistika',
+      'Aktuaria',
+    ],
+    'FTIRS': [
+      'Teknik Mesin',
+      'Teknik Kimia',
+      'Teknik Fisika',
+      'Rekayasa Keselamatan Proses',
+      'Teknik Industri',
+      'Teknik Material dan Metalurgi',
+      'Teknik Pangan',
+    ],
+    'FTK': [
+      'Teknik Perkapalan',
+      'Teknik Sistem Perkapalan',
+      'Teknik Kelautan',
+      'Teknik Transportasi Laut',
+      'Teknik Lepas Pantai',
+    ],
+    'FTSPK': [
+      'Teknik Sipil',
+      'Arsitektur',
+      'Teknik Lingkungan',
+      'Teknik Geomatika',
+      'Perencanaan Wilayah Kota',
+      'Teknik Geofisika',
+      'Teknik Pertambangan',
+    ],
+    'FTEIC': [
+      'Teknik Elektro',
+      'Teknik Informatika',
+      'Sistem Informasi',
+      'Teknik Komputer',
+      'Teknik Biomedik',
+      'Teknologi Informasi',
+      'Teknik Telekomunikasi',
+    ],
+    'FDKBD': [
+      'Desain Produk',
+      'Desain Interior',
+      'Desain Komunikasi Visual',
+      'Manajemen Bisnis',
+      'Studi Pembangunan',
+    ],
+    'FV': [
+      'Teknik Infrastruktur Sipil',
+      'Teknik Mesin Industri',
+      'Teknik Elektro Otomasi',
+      'Teknik Kimia Industri',
+      'Teknik Instrumentasi',
+      'Statistika Bisnis',
+    ],
+    'FKK': ['Teknologi Kedokteran', 'Kedokteran'],
   };
 
   @override
@@ -107,7 +157,7 @@ class _AdminCatFormScreenState extends State<AdminCatFormScreen> {
           _isNeutered = cat.isNeutered;
           _existingIconUrl = cat.iconUrl;
           _existingCreatedAt = cat.createdAt;
-          
+
           // Reverse lookup the faculty for the cat's department
           for (var faculty in _faculties.keys) {
             if (_faculties[faculty]!.contains(cat.department)) {
@@ -156,7 +206,7 @@ class _AdminCatFormScreenState extends State<AdminCatFormScreen> {
             ),
           ],
         );
-        
+
         if (mounted) {
           setState(() {
             if (cropped != null) {
@@ -169,9 +219,9 @@ class _AdminCatFormScreenState extends State<AdminCatFormScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error picking image: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
       }
     }
   }
@@ -191,14 +241,22 @@ class _AdminCatFormScreenState extends State<AdminCatFormScreen> {
 
     try {
       final catService = Provider.of<CatService>(context, listen: false);
-      final storageService = Provider.of<StorageService>(context, listen: false);
+      final storageService = Provider.of<StorageService>(
+        context,
+        listen: false,
+      );
 
       final isEditing = widget.catId != null;
-      final catId = isEditing ? widget.catId! : FirebaseFirestore.instance.collection('cats').doc().id;
+      final catId = isEditing
+          ? widget.catId!
+          : FirebaseFirestore.instance.collection('cats').doc().id;
 
       String iconUrl = _existingIconUrl;
       if (_imageFile != null) {
-        final uploadedUrl = await storageService.uploadCatIcon(catId, _imageFile!);
+        final uploadedUrl = await storageService.uploadCatIcon(
+          catId,
+          _imageFile!,
+        );
         if (uploadedUrl != null) {
           iconUrl = uploadedUrl;
         }
@@ -217,7 +275,11 @@ class _AdminCatFormScreenState extends State<AdminCatFormScreen> {
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Cat profile ${isEditing ? "updated" : "created"} successfully.')),
+            SnackBar(
+              content: Text(
+                'Cat profile ${isEditing ? "updated" : "created"} successfully.',
+              ),
+            ),
           );
           context.pop();
         } else {
@@ -226,9 +288,9 @@ class _AdminCatFormScreenState extends State<AdminCatFormScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving cat: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error saving cat: $e')));
         setState(() {
           _submitting = false;
         });
@@ -247,9 +309,7 @@ class _AdminCatFormScreenState extends State<AdminCatFormScreen> {
     final isEditing = widget.catId != null;
 
     if (_loadingAdminCheck) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     // Security Gate
@@ -286,9 +346,7 @@ class _AdminCatFormScreenState extends State<AdminCatFormScreen> {
     }
 
     if (_loadingCat) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Stack(
@@ -342,10 +400,7 @@ class _AdminCatFormScreenState extends State<AdminCatFormScreen> {
                     items: _faculties.keys.map((faculty) {
                       return DropdownMenuItem<String>(
                         value: faculty,
-                        child: Text(
-                          faculty,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        child: Text(faculty, overflow: TextOverflow.ellipsis),
                       );
                     }).toList(),
                     onChanged: (val) {
@@ -395,7 +450,9 @@ class _AdminCatFormScreenState extends State<AdminCatFormScreen> {
                       'Spayed / Neutered',
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
-                    subtitle: const Text('Has this cat completed sterilization?'),
+                    subtitle: const Text(
+                      'Has this cat completed sterilization?',
+                    ),
                     value: _isNeutered,
                     secondary: Icon(Icons.healing_outlined, color: cs.primary),
                     onChanged: (val) {
@@ -429,9 +486,7 @@ class _AdminCatFormScreenState extends State<AdminCatFormScreen> {
         if (_submitting)
           Container(
             color: Colors.black45,
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: const Center(child: CircularProgressIndicator()),
           ),
       ],
     );
@@ -477,11 +532,7 @@ class _AdminCatFormScreenState extends State<AdminCatFormScreen> {
                   border: Border.all(color: Colors.white, width: 2),
                 ),
                 padding: const EdgeInsets.all(6),
-                child: const Icon(
-                  Icons.edit,
-                  size: 16,
-                  color: Colors.white,
-                ),
+                child: const Icon(Icons.edit, size: 16, color: Colors.white),
               ),
             ),
         ],
